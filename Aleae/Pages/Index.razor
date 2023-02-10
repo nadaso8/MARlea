@@ -1,0 +1,56 @@
+﻿@page "/"
+@using Microsoft.Extensions.Logging
+@inject ILogger<Index> Logger
+
+<PageTitle>Index</PageTitle>
+
+<EditForm Model="exampleModel">
+    <h3>Reactions</h3>
+    <textarea rows="@_rowsReactions" style="resize: none;" cols="60" @bind-value="TextReactions" @bind-value:event="oninput"></textarea>
+
+    <h3>Initial</h3>
+    <textarea rows="@_rowsInitial" style="resize: none;" cols="60" @bind-value="TextInitial" @bind-value:event="oninput"></textarea>
+    <h3>Trials</h3>
+    <InputNumber TValue="int" @bind-Value="exampleModel.Trials"></InputNumber>
+    <p></p>
+    <button type="reset">Reset</button>
+    <button type="submit">Submit</button>
+    
+</EditForm>
+
+@code {
+    private ExampleModel exampleModel = new();
+    
+    int _rowsReactions = 5;
+    string _textReactions = "";
+    int _rowsInitial = 5;
+    string _textInitial = "";
+    
+    private int CalculateSize(string value)
+    {
+        int output = 0;
+        output = Math.Max(value.Split('\n').Length, value.Split('\r').Length);
+        return Math.Max(output, 2);
+    }
+    
+    private string TextReactions
+    {
+        get => _textReactions;
+        set
+        {
+            _textReactions = value;
+            _rowsReactions = CalculateSize(value);
+        }
+    }
+    
+    private string TextInitial
+    {
+        get => _textInitial;
+        set
+        {
+            _textInitial = value;
+            _rowsInitial = CalculateSize(value);
+        }
+    }
+    
+}
