@@ -41,16 +41,16 @@ impl<'reacting> ReactionNework <'reacting> {
     }
 
     /// simulates the effects of the given reaction occuring in the reaction network
-    fn react(&self, reaction: &Reaction) {
+    fn react(& mut self, reaction: &'reacting Reaction<'reacting>) {
         
-        for reactant in reaction.reactants {
+        for reactant in &reaction.reactants {
             self.solution.entry(reactant.species)
-            .and_modify(|species| *species -= u64::from(reactant.coefficient));
+            .and_modify(|species| species.count -= u64::from(reactant.coefficient));
         }
 
-        for product in reaction.products {
+        for product in &reaction.products {
             self.solution.entry(product.species)
-            .and_modify(|species| *species -= u64::from(reactant.coefficient));
+            .and_modify(|species| species.count -= u64::from(product.coefficient));
         }
     }
 }
