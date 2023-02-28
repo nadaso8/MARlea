@@ -1,4 +1,4 @@
-use std::{collections::{HashSet}};
+use std::{collections::{HashSet, HashMap}};
 #[derive(Hash, Eq, PartialEq)]
 
 /// Contains a Name and value representing the count of some named DNA string
@@ -19,16 +19,15 @@ struct  Term <'reaction> {
 /// Eeach element contains the variable key used by a Solution struct as well as a reaction rate. 
 /// This struct should only be used inside of the Reaction_Network Struct 
 struct Reaction <'reaction> {
-    reactants: HashSet<Term<'reaction>>,
-    products: HashSet<Term<'reaction>>,
+    reactants: HashSet<Term<'reaction,>>,
+    products: HashSet<Term<'reaction,>>,
     reaction_rate: u32,
 }   
 
-/// Contains a set of all the declared reactions, as well as a set of all the reactions which may react next.
-/// possible_next_reaction is determined by comparing the coefficients for a given reactant to the current value held for that name in strands
+/// Contains a set of all the declared reactions, as well as a set of all of the avilable species.
 struct ReactionNework <'reacting> {
     reactions: HashSet<Reaction<'reacting>>,
-    solution: HashSet<Species>,
+    solution: HashMap<&'reacting Species, Species>,
 }
 
 impl<'reacting> ReactionNework <'reacting> {
@@ -43,7 +42,16 @@ impl<'reacting> ReactionNework <'reacting> {
 
     /// simulates the effects of the given reaction occuring in the reaction network
     fn react(&self, reaction: &Reaction) {
+        
+        for reactant in reaction.reactants {
+            self.solution.entry(reactant.species)
+            .and_modify(|species| *species -= u64::from(reactant.coefficient));
+        }
 
+        for product in reaction.products {
+            self.solution.entry(product.species)
+            .and_modify(|species| *species -= u64::from(reactant.coefficient));
+        }
     }
 }
 
