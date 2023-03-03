@@ -1,7 +1,7 @@
 pub mod reaction;
 
 use std::{collections::{HashSet, HashMap}};
-use reaction::{Reaction, term::{Term}, term::species::{Species}};
+use reaction::{Reaction, term::species::Species};
 
 /// Contains a set of all the declared reactions, as well as a set of all of the available species.
 struct ReactionNetwork <'reacting> {
