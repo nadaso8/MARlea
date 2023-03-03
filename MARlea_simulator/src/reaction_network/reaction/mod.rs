@@ -9,9 +9,40 @@ pub mod term;
 /// This struct should only be used inside of the Reaction_Network Struct 
 #[derive(Eq, PartialEq,Clone)]
 pub struct Reaction <'reaction> {
-    pub reactants: HashSet<Term<'reaction>>,
-    pub products: HashSet<Term<'reaction>>,
+    reactants: HashSet<Term<'reaction>>,
+    products: HashSet<Term<'reaction>>,
     reaction_rate: u32,
+}
+
+impl<'reaction> Reaction <'reaction> {
+
+    /// returns a reference to the reactants set within a reaction
+    pub fn get_reactants(&self) -> &HashSet<Term<'reaction>> {
+        return &self.reactants;
+    }
+
+    /// returns a reference to the products set within a reaction
+    pub fn get_products(&self) -> &HashSet<Term<'reaction>> {
+        return &self.products;
+    }
+
+    /// returns the reaction rate
+    pub fn get_reaction_rate (&self) -> u64 {
+        return self.reaction_rate as u64;
+    }
+
+    pub fn is_possible (&self) -> bool {
+        let mut reaction_possible = true;
+
+        for reactant in &self.reactants {
+            if reactant.get_coefficient() > reactant.get_species().get_count() {
+                reaction_possible = false;
+                break;
+            }
+        }
+        
+        return reaction_possible;
+    }
 }
 
 impl<'reaction> Hash for Reaction<'reaction> {

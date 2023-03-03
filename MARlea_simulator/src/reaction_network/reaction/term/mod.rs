@@ -1,4 +1,4 @@
-use species::{Species};
+use species::Species;
 
 pub mod species;
 
@@ -7,8 +7,22 @@ pub mod species;
 /// Coefficient is the value to add or subtract
 #[derive(Eq, PartialEq,Clone)]
 pub struct  Term<'reaction> {
-    pub species: &'reaction Species,
-    pub coefficient: u8,
+    species: &'reaction Species,
+    coefficient: u8,
+}
+
+impl <'reaction> Term<'reaction> {
+
+    /// returns the coefficient value of a Term
+    pub fn get_coefficient (&self) -> u64 {
+        return self.coefficient as u64;
+    }
+
+    // returns the species reference in a Term
+    pub fn get_species(&self) -> &'reaction Species {
+        return self.species;
+    }
+
 }
 
 impl<'reaction> std::hash::Hash for Term<'reaction> {
