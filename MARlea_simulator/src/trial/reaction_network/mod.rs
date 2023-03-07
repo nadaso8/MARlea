@@ -8,10 +8,52 @@ use reaction::{Reaction, term::species::Species};
 #[derive(Clone)]
 pub struct ReactionNetwork <'reacting> {
     reactions: HashSet<Reaction<'reacting>>,
+    null_adjacent_reactions: HashSet<&'reacting Reaction<'reacting>>,
     solution: HashMap<&'reacting Species, Species>,
 }
 
 impl<'reacting> ReactionNetwork <'reacting> {
+
+    pub fn get_null_adjacent_reactions(&self) -> HashSet<&Reaction> {
+        return self.null_adjacent_reactions.clone();
+    }
+
+    /// itterates through all reactions and finds reactions with no reactants it then inserts them into the null_adjacent_reactions set. 
+    /// after this it gets the species from that reaction's products and searches for reactions which use those species as their reactants. 
+    /// 
+    /// this has awful runtime but should only be called once per execution of the program 
+    fn gen_null_adjacent_reactions(&'reacting mut self) {
+
+        self.null_adjacent_reactions.clear();
+
+        for reaction in &self.reactions {
+
+            if reaction.get_reactants().is_empty() {
+
+                if self.null_adjacent_reactions.insert(reaction) {
+                    for product in reaction.get_products() {
+                        let null_generated_species = product.get_species();
+
+                        for secondary_reaction in &self.reactions {
+                            for secondary_reactant in secondary_reaction.get_reactants() {
+
+                                if *null_generated_species == *secondary_reactant.get_species() {
+                                    if !self.null_adjacent_reactions.insert(secondary_reaction) {
+                                        panic!("failed to insert into null_adjacent_reactions");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    panic!("failed to insert into null_adjacent_reactions");
+                }
+            }
+        }
+
+        return;
+    }
 
     /// Returns the subset of local reactions set is possible based on the Species.count values in solution
     pub fn get_possible_reactions<'getting_reactions> (&'getting_reactions self) -> HashSet<&Reaction<'reacting>> {
