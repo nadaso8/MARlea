@@ -5,6 +5,7 @@ use rand::Rng;
 use reaction::{Reaction, term::species::Species};
 
 /// Contains a set of all the declared reactions, as well as a set of all of the available species.
+#[derive(Clone)]
 pub struct ReactionNetwork <'reacting> {
     reactions: HashSet<Reaction<'reacting>>,
     solution: HashMap<&'reacting Species, Species>,
@@ -13,7 +14,7 @@ pub struct ReactionNetwork <'reacting> {
 impl<'reacting> ReactionNetwork <'reacting> {
 
     /// Returns the subset of local reactions set is possible based on the Species.count values in solution
-    pub fn get_possible_reactions<'getting_reactions> (&'getting_reactions self) -> HashSet<&Reaction<'getting_reactions>> {
+    pub fn get_possible_reactions<'getting_reactions> (&'getting_reactions self) -> HashSet<&Reaction<'reacting>> {
 
         let mut possible_reactions = HashSet::new();
 
@@ -70,8 +71,8 @@ impl<'reacting> ReactionNetwork <'reacting> {
         return;
     }
 
-    pub fn get_solution (&self) -> HashMap<&Species, Species> {
-        return self.solution;
+    pub fn get_solution (&self) -> &HashMap<&Species, Species> {
+        return &self.solution;
     }
 
 }
