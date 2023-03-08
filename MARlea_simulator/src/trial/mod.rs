@@ -1,9 +1,8 @@
 pub mod reaction_network;
 
 use std::collections::HashMap;
-use reaction_network::ReactionNetwork;
-
-use self::reaction_network::reaction::term::species::Species;
+use reaction_network::{ReactionNetwork, reaction::term::species::Species};
+const MAX_SEMI_STABLE_CYCLES: i32 = 99;
 
 pub struct Trial<'trial> {
     reaction_network: ReactionNetwork<'trial>,
@@ -13,8 +12,11 @@ pub struct Trial<'trial> {
 
 impl<'trial> Trial<'trial> {
 
-    pub fn from() {
-
+    pub fn from(reaction_network: ReactionNetwork<'trial>) -> Self {
+        Self {
+            reaction_network,
+            stability: Stability::Initial,
+        }
     }
 
     pub fn simulate(&mut self) -> &HashMap<&Species,Species> {
@@ -66,7 +68,7 @@ impl<'trial> Trial<'trial> {
                     self.stability = Stability::Stable;
                 }
                 else if self.reaction_network.get_possible_reactions().is_subset(self.reaction_network.get_null_adjacent_reactions()) {
-                    if count < 99 {
+                    if count < MAX_SEMI_STABLE_CYCLES {
                         self.reaction_network.react();
                         self.stability = Stability::SemiStable(count + 1);
                     }
