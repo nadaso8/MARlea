@@ -1,90 +1,97 @@
 pub mod reaction_network;
 
-use reaction_network::{ReactionNetwork, reaction::Reaction, reaction::term::species::Species};
-use std::collections::{HashSet, HashMap};
+use std::collections::HashMap;
+use reaction_network::ReactionNetwork;
 
-use self::reaction_network::reaction;
+use self::reaction_network::reaction::term::species::Species;
 
-#[derive(Clone)]
-pub enum TrialState<'calculating_trial_results> {
-    Initial(ReactionNetwork<'calculating_trial_results>), 
-    Unstable(ReactionNetwork<'calculating_trial_results>),
-    SemiStable(ReactionNetwork<'calculating_trial_results>, i32),
-    Stable(ReactionNetwork<'calculating_trial_results>),
+pub struct Trial<'trial> {
+    reaction_network: ReactionNetwork<'trial>,
+    stability: Stability,
 }
 
-impl<'reacting> TrialState<'reacting> {
 
-    pub fn simulate (&mut self) -> HashMap<&Species, Species> {
-        loop {
-            match self {
-                TrialState::Initial(reaction_network) => {
-                    // get possible reactions then determine if reaction_network is unstable, semi stable, or stable.  
-                    let possible_reactions = reaction_network.get_possible_reactions();
+impl<'trial> Trial<'trial> {
 
-                    if possible_reactions.is_empty() {
-                        *self = TrialState::Stable(reaction_network.clone());
-                    }
-                    else if possible_reactions.is_subset(&reaction_network.get_null_adjacent_reactions()) {
-                        *self = TrialState::SemiStable(reaction_network.clone(), 0);
-                    }
-                    else {
-                        *self = TrialState::Unstable(reaction_network.clone());
-                    }
-                } 
-                TrialState::Unstable(reaction_network) => {
-                    // get possible reactions then determine if reaction_netowrk is unstabel, semi stable, or stable. if the reaction netowrk is unstable or semi stable get_next_reaction() from possible_reactions and react() it 
-                    let possible_reactions = reaction_network.get_possible_reactions();
+    pub fn from() {
 
-                    if possible_reactions.is_empty() {
-                        *self = TrialState::Stable(reaction_network.clone());
-                    }
-                    else if possible_reactions.is_subset(&reaction_network.get_null_adjacent_reactions()) {
-                        if let Some(next_reaction) = reaction_network.get_next_reaction(&possible_reactions)  {
-                            reaction_network.react(next_reaction);
-                        }
-                        *self = TrialState::SemiStable(reaction_network.clone(), 0);
-                    }
-                    else {
-                        if let Some(next_reaction) = reaction_network.get_next_reaction(&possible_reactions)  {
-                            reaction_network.react(next_reaction);
-                        }
-                        *self = TrialState::Unstable(reaction_network.clone());
-                    }
-                }
-                TrialState::SemiStable(reaction_network, count) => {
-                    // get possible reactions then determine if reaction network is unstable, semi stable, or stable. if the reaction network is semi stable and count is less than 100 and get_next_reaction() from possible_reactions and react() it, if count is greater than 100 set self to Stable variant
-                    let possible_reactions = reaction_network.get_possible_reactions();
+    }
 
-                    if possible_reactions.is_empty() {
-                        *self = TrialState::Stable(reaction_network.clone());
-                    }
-                    else if possible_reactions.is_subset(&reaction_network.get_null_adjacent_reactions()) {
-                        if *count < 100 {
-                            if let Some(next_reaction) = reaction_network.get_next_reaction(&possible_reactions)  {
-                                reaction_network.react(next_reaction);
-                            }
-                            *self = TrialState::SemiStable(reaction_network.clone(), *count + 1);
-                        }
-                        else {
-                            if let Some(next_reaction) = reaction_network.get_next_reaction(&possible_reactions)  {
-                                reaction_network.react(next_reaction);
-                            }
-                            *self = TrialState::Stable(reaction_network.clone());
-                        }
-                    }
-                    else {
-                        *self = TrialState::Unstable(reaction_network.clone());
-                    }
-                }
-                TrialState::Stable(reaction_network) => {
-                    //get solution from reaction network and return it. 
-                    return reaction_network.get_solution().clone();
-                }
+    pub fn simulate(&mut self) -> &HashMap<&Species,Species> {
+        loop{
+            self.step();
+            if let Stability::Stable = self.stability {
+                return self.reaction_network.get_solution();
             }
-
         }
     }
 
+    fn  step (&mut self) {
+        match self.stability {
+            Stability::Initial => {
+                 
+                // if the network's possible reactions set is empty,
+                // then mark the network as stable
+                if self.reaction_network.get_possible_reactions().is_empty() {
+                    self.stability = Stability::Stable;
+                }
+                // If possible reactions set is subset of null adjacent reactions set,
+                // then mark it semi-stable
+                else if self.reaction_network.get_possible_reactions().is_subset(&self.reaction_network.get_null_adjacent_reactions()) {
+                    self.stability = Stability::SemiStable(0);
+                } else {
+                    // otherwise, leave it unstable, since there is more to be processed
+                    self.stability = Stability::Unstable;
+                }
+            } 
+            Stability::Unstable => {
+                // get possible reactions then determine if reaction_network is unstabel, semi stable, or stable. if the reaction netowrk is unstable or semi stable get_next_reaction() from possible_reactions and react() it 
+
+                if self.reaction_network.get_possible_reactions().is_empty() {
+                    self.stability = Stability::Stable;
+                }
+                else if self.reaction_network.get_possible_reactions().is_subset(self.reaction_network.get_null_adjacent_reactions()) {
+                    self.reaction_network.react();
+                    self.stability = Stability::SemiStable(0);
+                }
+                else {
+                    self.reaction_network.react();
+                    self.stability = Stability::Unstable;
+                }
+            }
+            Stability::SemiStable(count) => {
+                // get possible reactions then determine if reaction network is unstable, semi stable, or stable. if the reaction network is semi stable and count is less than 100 and get_next_reaction() from possible_reactions and react() it, if count is greater than 100 set self to Stable variant
+
+                if self.reaction_network.get_possible_reactions().is_empty() {
+                    self.stability = Stability::Stable;
+                }
+                else if self.reaction_network.get_possible_reactions().is_subset(self.reaction_network.get_null_adjacent_reactions()) {
+                    if count < 99 {
+                        self.reaction_network.react();
+                        self.stability = Stability::SemiStable(count + 1);
+                    }
+                    else {
+                        self.reaction_network.react();
+                        self.stability = Stability::Stable;
+                    }
+                }
+                else {
+                    self.stability = Stability::Unstable;
+                }
+            }
+            Stability::Stable => {
+                //return once a stable state is reached.  
+                self.stability = Stability::Stable;
+            }
+        }
+    }
+
+
 }
 
+enum Stability {
+    Initial, 
+    Unstable,
+    SemiStable(i32),
+    Stable,
+}

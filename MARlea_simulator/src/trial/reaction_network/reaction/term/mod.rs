@@ -6,12 +6,12 @@ use species::Species;
 /// Species is a reference to a named value in solution which will be added to or subtracted from. 
 /// Coefficient is the value to add or subtract
 #[derive(Eq, PartialEq,Clone)]
-pub struct  Term<'reaction> {
-    species: &'reaction Species,
+pub struct  Term<'term> {
+    species: &'term Species,
     coefficient: u8,
 }
 
-impl <'reaction> Term<'reaction> {
+impl <'term> Term<'term> {
 
     /// returns the coefficient value of a Term
     pub fn get_coefficient (&self) -> u64 {
@@ -19,13 +19,13 @@ impl <'reaction> Term<'reaction> {
     }
 
     // returns the species reference in a Term
-    pub fn get_species(&self) -> &'reaction Species {
+    pub fn get_species(&self) -> &'term Species {
         return self.species;
     }
 
 }
 
-impl<'reaction> std::hash::Hash for Term<'reaction> {
+impl<'term> std::hash::Hash for Term<'term> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.species.hash(state);
         self.coefficient.hash(state);

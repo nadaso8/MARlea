@@ -8,13 +8,13 @@ use term::Term;
 /// Eeach element contains the variable key used by a Solution struct as well as a reaction rate. 
 /// This struct should only be used inside of the Reaction_Network Struct 
 #[derive(Eq, PartialEq,Clone)]
-pub struct Reaction <'reaction> {
+pub struct Reaction<'reaction> {
     reactants: HashSet<Term<'reaction>>,
     products: HashSet<Term<'reaction>>,
     reaction_rate: u32,
 }
 
-impl<'reaction> Reaction <'reaction> {
+impl<'reaction> Reaction<'reaction> {
 
     /// returns a reference to the reactants set within a reaction
     pub fn get_reactants(&self) -> &HashSet<Term<'reaction>> {
