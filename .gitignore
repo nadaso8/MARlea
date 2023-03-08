@@ -11,6 +11,7 @@
 *.userprefs
 
 # Build results
+/MARlea_simulator/target/
 /Aleae/[Dd]ebug/
 /Aleae/[Dd]ebugPublic/
 /Aleae/[Rr]elease/
