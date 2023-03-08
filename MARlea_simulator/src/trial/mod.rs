@@ -1,17 +1,19 @@
-pub mod reaction_network;
+// Import necessary modules 
+pub mod reaction_network; // Module that holds our ReactionNetwork details
+use std::collections::HashMap; // Hashmap class used collectively within the module
+use reaction_network::{ReactionNetwork, reaction::term::species::Species}; // Import relevant classes from ReactionNetwork module
 
-use std::collections::HashMap;
-use reaction_network::{ReactionNetwork, reaction::term::species::Species};
-const MAX_SEMI_STABLE_CYCLES: i32 = 99;
+const MAX_SEMI_STABLE_CYCLES: i32 = 99; // maximum number of cycles before a semi-stable network is marked as stable
 
 pub struct Trial<'trial> {
-    reaction_network: ReactionNetwork<'trial>,
-    stability: Stability,
+    reaction_network: ReactionNetwork<'trial>, // Instance of Reaction Network for this trial
+    stability: Stability, // Current stability status of the trial/experiment (initially set to "Initial")
 }
 
 
 impl<'trial> Trial<'trial> {
 
+    /// Generates a new instance of `Trial` by taking in an instance of `ReactionNetwork`.
     pub fn from(reaction_network: ReactionNetwork<'trial>) -> Self {
         Self {
             reaction_network,
@@ -19,35 +21,47 @@ impl<'trial> Trial<'trial> {
         }
     }
 
+    /// This function simulates a Reaction Network by running reactions on it until the network
+    /// reaches a stable state. It takes a mutable reference to a Trial instance and returns a 
+    /// reference to a HashMap containing the Species instances in the stable network solution.
+    ///
+    /// # Arguments
+    ///
+    /// * `self` - A mutable reference to a Trial instance
+    ///
+    /// # Returns
+    ///
+    /// A reference to a HashMap that contains all the `species` after simulation keyd by their references.
     pub fn simulate(&mut self) -> &HashMap<&Species,Species> {
         loop{
+
             self.step();
+
+             // If a stable state has been reached, return the current network solution
             if let Stability::Stable = self.stability {
                 return self.reaction_network.get_solution();
             }
+
         }
     }
 
+    /// Handles progressing the simulation one step further by evaluating the current status of the system and performing reactions if necessary.
     fn  step (&mut self) {
         match self.stability {
             Stability::Initial => {
                  
-                // if the network's possible reactions set is empty,
-                // then mark the network as stable
                 if self.reaction_network.get_possible_reactions().is_empty() {
                     self.stability = Stability::Stable;
                 }
-                // If possible reactions set is subset of null adjacent reactions set,
-                // then mark it semi-stable
+
                 else if self.reaction_network.get_possible_reactions().is_subset(&self.reaction_network.get_null_adjacent_reactions()) {
                     self.stability = Stability::SemiStable(0);
                 } else {
-                    // otherwise, leave it unstable, since there is more to be processed
+                    
                     self.stability = Stability::Unstable;
                 }
             } 
             Stability::Unstable => {
-                // get possible reactions then determine if reaction_network is unstabel, semi stable, or stable. if the reaction netowrk is unstable or semi stable get_next_reaction() from possible_reactions and react() it 
 
                 if self.reaction_network.get_possible_reactions().is_empty() {
                     self.stability = Stability::Stable;
@@ -62,7 +76,6 @@ impl<'trial> Trial<'trial> {
                 }
             }
             Stability::SemiStable(count) => {
-                // get possible reactions then determine if reaction network is unstable, semi stable, or stable. if the reaction network is semi stable and count is less than 100 and get_next_reaction() from possible_reactions and react() it, if count is greater than 100 set self to Stable variant
 
                 if self.reaction_network.get_possible_reactions().is_empty() {
                     self.stability = Stability::Stable;
@@ -82,13 +95,10 @@ impl<'trial> Trial<'trial> {
                 }
             }
             Stability::Stable => {
-                //return once a stable state is reached.  
                 self.stability = Stability::Stable;
             }
         }
     }
-
-
 }
 
 enum Stability {

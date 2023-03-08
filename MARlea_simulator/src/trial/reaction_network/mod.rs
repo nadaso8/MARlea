@@ -4,8 +4,23 @@ use std::{collections::{HashSet, HashMap}};
 use rand::Rng;
 use reaction::{Reaction, term::species::Species};
 
-/// Contains a set of all the declared reactions, as well as a set of all of the available species.
+
 #[derive(Clone)]
+/// A `ReactionNetwork` represents a computational netowork of chemical reactions.
+///
+/// It contains four main components:
+///
+/// - `reactions`: a set of all the reactions in the network, represented as instances of `Reaction`.
+/// - `possible_reactions`: a subset of `reactions` that are currently possible to occur based on the current state
+///                        of the system (i.e. the concentration of Species in solution). This is updated at each time step.
+/// - `null_adjacent_reactions`: a subset of `reactions` that involve only products, 
+///                              or involve reactants produced by `reactions` only involving products.
+///                              i.e. they are adjacent to null species.
+///                              This is used to speed up computations.
+/// - `solution`: a dictionary that maps references to species to their current value in the system
+///
+/// The lifetime parameter `'reaction_network` is used to tie the struct to the lifetime of its dependencies,
+/// such as instances of `Reaction` and `Species`.
 pub struct ReactionNetwork <'reaction_network> where 'reaction_network: {
     reactions: HashSet<Reaction<'reaction_network>>,
     possible_reactions: HashSet<Reaction<'reaction_network>>, 
@@ -19,10 +34,7 @@ impl<'reaction_netowrk, 'reaction> ReactionNetwork <'reaction_netowrk> where 're
         return &self.null_adjacent_reactions;
     }
 
-    /// itterates through all reactions and finds reactions with no reactants it then inserts them into the null_adjacent_reactions set. 
-    /// after this it gets the species from that reaction's products and searches for reactions which use those species as their reactants. 
-    /// 
-    /// this has awful runtime but should only be called once per execution of the program 
+
     fn gen_null_adjacent_reactions(&'reaction_netowrk mut self) {
 
         self.null_adjacent_reactions.clear();
@@ -54,7 +66,6 @@ impl<'reaction_netowrk, 'reaction> ReactionNetwork <'reaction_netowrk> where 're
         }
     }
 
-    /// Returns the subset of local reactions set is possible based on the Species.count values in solution
     pub fn get_possible_reactions<'getting> (&'getting self) -> &'getting HashSet<Reaction<'reaction_netowrk>> where 'reaction:'getting{
         return &self.possible_reactions;
     }
@@ -69,7 +80,6 @@ impl<'reaction_netowrk, 'reaction> ReactionNetwork <'reaction_netowrk> where 're
         }
     }
 
-    /// takes outputs the total sum of the reaction rates in the provided hash set of reactions
     fn sum_reaction_rates (&self) -> u64 {
         let mut sum: u64 = 0; 
         for reaction in &self.possible_reactions {
@@ -78,13 +88,11 @@ impl<'reaction_netowrk, 'reaction> ReactionNetwork <'reaction_netowrk> where 're
         return sum;
     }
 
-    /// Randomly selects a reaction from the provided set using a probablility generated from the total number of reactions with reach one scaled by reaction rate,
     pub fn get_next_reaction<'getting> (&'getting self) -> Option<Reaction<'reaction>> where 'reaction:'getting {
     
         let mut index = rand::thread_rng().gen_range(0.. self.sum_reaction_rates() + 1);
         let mut next_reaction: Option<Reaction<'reaction>>= None;
 
-        // if loop finishes before index < reaction rate then the return value will be null 
         for reaction in self.get_possible_reactions() {
             if reaction.get_reaction_rate() > index {
                 next_reaction = Some(reaction.clone());
@@ -96,7 +104,6 @@ impl<'reaction_netowrk, 'reaction> ReactionNetwork <'reaction_netowrk> where 're
         return next_reaction;
     }
 
-    /// Updates local solution with the effects of a given reaction
     pub fn react<'reacting> (&'reacting mut self)
 
     where
