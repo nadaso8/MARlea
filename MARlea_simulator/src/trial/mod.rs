@@ -22,7 +22,7 @@ impl<'trial> Trial<'trial> {
     }
 
     /// This function simulates a Reaction Network by running reactions on it until the network
-    /// reaches a stable state. It takes a mutable reference to a Trial instance and returns a 
+    /// reaches a stable state. It takes it's self as a mutable reference to a Trial instance and returns a 
     /// reference to a HashMap containing the Species instances in the stable network solution.
     ///
     /// # Arguments
