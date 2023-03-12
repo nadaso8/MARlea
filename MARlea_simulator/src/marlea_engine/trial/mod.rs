@@ -21,16 +21,16 @@ use reaction_network::{ReactionNetwork, reaction::term::species::Species}; // Im
 
 const MAX_SEMI_STABLE_CYCLES: i32 = 99; // maximum number of cycles before a semi-stable network is marked as stable
 
-pub struct Trial<'trial> {
-    reaction_network: ReactionNetwork<'trial>, // Instance of Reaction Network for this trial
+pub struct Trial {
+    reaction_network: ReactionNetwork, // Instance of Reaction Network for this trial
     stability: Stability, // Current stability status of the trial/experiment (initially set to "Initial")
 }
 
 
-impl<'trial> Trial<'trial> {
+impl Trial {
 
     /// Generates a new instance of `Trial` by taking in an instance of `ReactionNetwork`.
-    pub fn from(reaction_network: ReactionNetwork<'trial>) -> Self {
+    pub fn from(reaction_network: ReactionNetwork) -> Self {
         Self {
             reaction_network,
             stability: Stability::Initial,
@@ -48,7 +48,7 @@ impl<'trial> Trial<'trial> {
     /// # Returns
     ///
     /// A reference to a HashMap that contains all the `species` after simulation keyd by their references.
-    pub fn simulate(&mut self) -> &HashMap<&Species,Species> {
+    pub fn simulate(&mut self) -> &HashMap<Species,Species> {
         loop{
 
             self.step();

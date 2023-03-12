@@ -1,25 +1,15 @@
-/// Contains a Name and value representing the count of some named DNA string
-#[derive(Hash, Eq, PartialEq,Clone)]
-pub struct Species {
-    name: String,
-    count: u64,
+/// Contains a Name, Count, Or Threshold type for a species
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
+pub enum Species {
+    Name(String),
+    Count(u64),
+    Threshold(Option<Threshold>),
 }
 
-impl Species {
-
-    /// returns a reference to the name String 
-    pub fn get_name (&self) -> &String {
-        return &self.name;
-    }
-
-    /// sets the value of count to be new_count
-    pub fn set_count (&mut self, new_count: u64) {
-        self.count = new_count;
-        return;
-    }
-
-    /// returns value of count
-    pub fn get_count (&self) -> u64 {
-        return self.count;
-    }
+#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+pub enum Threshold {
+    LessThan(u64),
+    LessThanOrEqual(u64),
+    GreaterThan(u64),
+    GreaterThanOrEqual(u64),
 }

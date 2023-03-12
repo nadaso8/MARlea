@@ -1,28 +1,32 @@
 pub mod term;
 
-use std::{collections::{HashSet}, hash::{Hash, Hasher}};
+use std::{collections::{HashSet, HashMap}, hash::{Hash, Hasher}};
 use std::collections::hash_map::DefaultHasher;
-use term::Term;
+use term::{Term, species::Species};
 
 /// Stores a set for the reaction reactants and products. 
 /// Eeach element contains the variable key used by a Solution struct as well as a reaction rate. 
 /// This struct should only be used inside of the Reaction_Network Struct 
 #[derive(Eq, PartialEq,Clone)]
-pub struct Reaction<'reaction> {
-    reactants: HashSet<Term<'reaction>>,
-    products: HashSet<Term<'reaction>>,
+pub struct Reaction {
+    reactants: HashSet<Term>,
+    products: HashSet<Term>,
     reaction_rate: u32,
 }
 
-impl<'reaction> Reaction<'reaction> {
+impl Reaction {
 
+    pub fn new (reactants: HashSet<Term>, products: HashSet<Term>, reaction_rate: usize) -> Self {
+        return Self { reactants: reactants, products: products, reaction_rate: reaction_rate.try_into().unwrap()};
+    }
+    
     /// returns a reference to the reactants set within a reaction
-    pub fn get_reactants(&self) -> &HashSet<Term<'reaction>> {
+    pub fn get_reactants(&self) -> &HashSet<Term> {
         return &self.reactants;
     }
 
     /// returns a reference to the products set within a reaction
-    pub fn get_products(&self) -> &HashSet<Term<'reaction>> {
+    pub fn get_products(&self) -> &HashSet<Term> {
         return &self.products;
     }
 
@@ -31,13 +35,15 @@ impl<'reaction> Reaction<'reaction> {
         return self.reaction_rate as u64;
     }
 
-    pub fn is_possible (&self) -> bool {
+    pub fn is_possible (&self, solution: &HashMap<Species,Species>) -> bool {
         let mut reaction_possible = true;
 
         for reactant in &self.reactants {
-            if reactant.get_coefficient() > reactant.get_species().get_count() {
-                reaction_possible = false;
-                break;
+            if let Some(Species::Count(current_count)) = solution.get(&reactant.get_species_name()) {
+                if reactant.get_coefficient() > *current_count {
+                    reaction_possible = false;
+                    break;
+                }
             }
         }
         
@@ -45,7 +51,7 @@ impl<'reaction> Reaction<'reaction> {
     }
 }
 
-impl<'reaction> Hash for Reaction<'reaction> {
+impl Hash for Reaction {
     fn hash<H: Hasher>(&self, state: &mut H) {
         let mut hasher = DefaultHasher::new();
         for term in &self.reactants {
@@ -58,4 +64,5 @@ impl<'reaction> Hash for Reaction<'reaction> {
         hasher.finish().hash(state);
     }
 }
+
 
