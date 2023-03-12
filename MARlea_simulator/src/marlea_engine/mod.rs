@@ -48,35 +48,42 @@ pub out_type: Option<String>,
 pub num_trials: Option<usize>,
 pub max_runtime: Option<u64>,
 
-prime_network: ReactionNetwork,
+prime_network: Option<ReactionNetwork>,
 }
 
 impl MarleaEngine {
-pub fn new(
-    input_path: String,
-    init_path: Option<String>,
-    out_path: Option<String>,
-    num_trials: Option<usize>,
-    max_runtime: Option<u64>,
-) -> Self {
-    todo!()
-}
+    pub fn new(
+        input_path: String,
+        init_path: Option<String>,
+        out_path: Option<String>,
+        out_type: Option<String>,
+        num_trials: Option<usize>,
+        max_runtime: Option<u64>,
+    ) -> Self { 
+        Self{
+        input_path:input_path, 
+        init_path:init_path,
+        out_path:out_path,
+        out_type:out_type,
+        num_trials:num_trials,
+        max_runtime:max_runtime,
+        prime_network: None,
+    } }
 
-pub fn run(&self) -> Result<bool, &'static str> {
+    pub fn run(&self) -> Result<bool, &'static str> {
 
-    // Set up simulation loop
-    let mut time = 0.0;
-    let mut trial_count = 0;
-    while trial_count <= match self.num_trials{Some(number) => number, None => 100} {
+        // Set up simulation loop
+        let mut time = 0.0;
+        let mut trial_count = 0;
+        while trial_count <= match self.num_trials{Some(number) => number, None => 100} {
 
+        }
+
+        // Write output file
+        todo!();
+
+        Ok(true)
     }
-
-    // Write output file
-    todo!();
-
-    Ok(true)
-}
-
 }
 
 enum ReactionNetworkParts {

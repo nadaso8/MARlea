@@ -49,6 +49,9 @@ use structopt::StructOpt;
 mod marlea_engine;
 
 fn main () {
+    // get command line arguments
+
+    // from parse command line argumetns as Option<Strings> then feed them into an instance of MarleaEngine
 
 }
 
