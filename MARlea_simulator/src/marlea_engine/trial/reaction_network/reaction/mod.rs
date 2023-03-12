@@ -7,7 +7,7 @@ use term::{Term, species::Species};
 /// Stores a set for the reaction reactants and products. 
 /// Eeach element contains the variable key used by a Solution struct as well as a reaction rate. 
 /// This struct should only be used inside of the Reaction_Network Struct 
-#[derive(Eq, PartialEq,Clone)]
+#[derive(Debug, Eq, PartialEq,Clone)]
 pub struct Reaction {
     reactants: HashSet<Term>,
     products: HashSet<Term>,
@@ -64,5 +64,3 @@ impl Hash for Reaction {
         hasher.finish().hash(state);
     }
 }
-
-
