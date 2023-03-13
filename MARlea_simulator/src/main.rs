@@ -46,9 +46,8 @@
 // Import necessary modules
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
+use 
 
-// Import MarleaEngine module from marlea_engine.rs
-mod marlea_engine;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Marlea", about = "A command line program for simulating DNA based chemical reaction networks")]
