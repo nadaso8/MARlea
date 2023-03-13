@@ -27,6 +27,21 @@ pub struct Trial {
 }
 
 
+#[derive(Eq, PartialEq, Clone)]
+pub struct TrialResult {
+    pub result: HashMap<Species, Species>,
+}
+
+// implementation of hash for result
+impl std::hash::Hash for TrialResult {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        for entry in self.result.iter() {
+            entry.hash(state);
+        }      
+    }
+}
+
+
 impl Trial {
 
     /// Generates a new instance of `Trial` by taking in an instance of `ReactionNetwork`.
@@ -48,14 +63,14 @@ impl Trial {
     /// # Returns
     ///
     /// A reference to a HashMap that contains all the `species` after simulation keyd by their references.
-    pub fn simulate(&mut self) -> &HashMap<Species,Species> {
+    pub fn simulate(&mut self) -> TrialResult {
         loop{
 
             self.step();
 
              // If a stable state has been reached, return the current network solution
             if let Stability::Stable = self.stability {
-                return self.reaction_network.get_solution();
+                return TrialResult{result: self.reaction_network.get_solution().clone()};
             }
 
         }

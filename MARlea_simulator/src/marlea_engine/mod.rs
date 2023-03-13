@@ -31,66 +31,116 @@
 ///     - JSON UNIMPLEMENTED!
 
 use std::collections::{HashMap, HashSet};
-use std::fs::{File, FileType};
+use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 use csv::ReaderBuilder;
+use self::trial::TrialResult;
+use self::trial::reaction_network::reaction::term::species::Threshold;
 use self::trial::reaction_network::{ReactionNetwork, reaction::{Reaction, term::{Term, species::Species}}};
 
 
 mod trial;
 
 pub struct MarleaEngine {
-pub input_path: String,
-pub init_path: Option<String>,
-pub out_path: Option<String>,
-pub out_type: Option<String>,
-pub num_trials: Option<usize>,
-pub max_runtime: Option<u64>,
+    out_path: Option<String>,
+    num_trials: Option<usize>,
+    max_runtime: Option<u64>,
 
-prime_network: Option<ReactionNetwork>,
+    prime_network: ReactionNetwork
 }
 
 impl MarleaEngine {
     pub fn new(
+        &self,
         input_path: String,
         init_path: Option<String>,
         out_path: Option<String>,
-        out_type: Option<String>,
         num_trials: Option<usize>,
         max_runtime: Option<u64>,
     ) -> Self { 
-        Self{
-        input_path:input_path, 
-        init_path:init_path,
-        out_path:out_path,
-        out_type:out_type,
-        num_trials:num_trials,
-        max_runtime:max_runtime,
-        prime_network: None,
-    } }
+        
+        let reactions = SupportedFileType::from(input_path).parse_reactions();
+        let solution = Self::solution_from(init_path, &reactions);
+        let prime_network = ReactionNetwork::new(reactions, solution);
 
-    pub fn run(&self) -> Result<bool, &'static str> {
+        Self{
+        out_path,
+        num_trials,
+        max_runtime,
+        prime_network,
+        } 
+    }
+
+    pub fn run(&self) -> bool {
+        // vector containing all trial results
+        let mut simulation_results = HashSet::new();
 
         // Set up simulation loop
-        let mut time = 0.0;
+        // TODO Implement max_runtime timer for simulation
         let mut trial_count = 0;
         while trial_count <= match self.num_trials{Some(number) => number, None => 100} {
-
+            trial_count += 1;
+            let mut current_trial = trial::Trial::from(self.prime_network.clone());
+            simulation_results.insert(current_trial.simulate());
         }
 
-        // Write output file
-        todo!();
-
-        Ok(true)
+        //write results 
+        if let Some(path) = &self.out_path {
+            let output_file = SupportedFileType::from(path.clone());
+            for field in Self::average_trials(simulation_results) {
+                match field.0 {
+                    Species::Name(name) => output_file.write(&format!("{},{}\n",name,field.1)).unwrap(),
+                    Species::Count(count) => panic!("Count species variant {} found in results", count),
+                    Species::Threshold(_threshold) => panic!("Threshold species variant found in results"),
+                }
+            }
+        }
+        else {
+            for field in Self::average_trials(simulation_results) {
+                match field.0 {
+                    Species::Name(name) => println!("{},{}",name,field.1),
+                    Species::Count(count) => panic!("Count species variant {} found in results", count),
+                    Species::Threshold(_threshold) => panic!("Threshold species variant found in results"),
+                }
+            }
+        }
+        
+        return true;
     }
+    
+    fn average_trials(trial_results: HashSet<TrialResult>) -> Vec<(Species, f64)> {
+        // Calculate the average value for each species after being simulated and add it to an alphebetically sorted list. 
+        todo!()
+    }
+
+    fn solution_from(file_path: Option<String>, reactions: &HashSet<Reaction>) -> HashMap<Species, Species> {
+        if let Some(path) = file_path {
+            return SupportedFileType::from(path).parse_initial_solution(&reactions);
+        }
+        else {
+            // Get possible species from reactions
+            let mut solution: HashMap<Species, Species> = HashMap::new();
+            
+            for reaction in reactions {
+                for reactant in reaction.get_reactants() {
+                    if !solution.contains_key(&reactant.get_species_name()) {
+                        solution.insert(reactant.get_species_name().clone(), Species::Count(0));
+                    }
+                }
+                for product in reaction.get_products() {
+                    if !solution.contains_key(&product.get_species_name()) {
+                        solution.insert(product.get_species_name().clone(), Species::Count(0));
+                    }
+                }
+            }
+
+            return solution; 
+        }
 }
 
-enum ReactionNetworkParts {
-    Reactions(HashSet<Reaction>),
-    Solution(HashMap<Species, Species>),
-}
 
+}
 enum SupportedFileType {
 CSV(String),
 XML(String),
@@ -114,7 +164,7 @@ impl SupportedFileType {
     }
 
     // A function that parses a file into a `ReactionNetworkParts` enum Type
-    pub fn parse_reactions(&self) -> ReactionNetworkParts {
+    pub fn parse_reactions(&self) -> HashSet<Reaction> {
         // Handle different types of supported files, starts here with CSV
         match self {
             Self::CSV(path) => {
@@ -197,7 +247,7 @@ impl SupportedFileType {
                         }
                         
                         // return parsed reactions
-                        ReactionNetworkParts::Reactions(reactions)
+                        return reactions;
                     },
                     Err(error) => todo!(),
                 } // end of inner match { OK(CSVReader) vs. Error(String) }
@@ -234,7 +284,7 @@ impl SupportedFileType {
     /// Parses initial solution from a reaction network based on the file type (CSV, JSON, XML) 
     /// Self: is a parsed set of reactions which will be added to solution with count of 0 if not specieifed in init data
     /// returns ReactionNetworkParts which contains the parsed initial solution
-    pub fn parse_initial_solution(&self, reactions: HashSet<Reaction>) -> ReactionNetworkParts {
+    pub fn parse_initial_solution(&self, reactions: &HashSet<Reaction>) -> HashMap<Species, Species> {
         // Get possible species from reactions
         let mut initial_solution: HashMap<Species, Species> = HashMap::new();
         
@@ -284,18 +334,20 @@ impl SupportedFileType {
                         }
 
                         // Return initial solution as part of ReactionNetworkParts
-                        ReactionNetworkParts::Solution(initial_solution)
+                        return initial_solution;
                     },
                     Err(error) => panic!("error occurred while reading csv file: {}", error), // Handle reader error here
                 }
             }
+            Self::XML(path) => unimplemented!(),
+            Self::JSON(path) => unimplemented!(),
             _ => panic!("Unsupported file type"), // Unsupported type handling
         }
     }
 
 
 
-    pub fn write(&self, content: &str) -> std::io::Result<()> {
+    pub fn write(&self, content: &String) -> std::io::Result<()> {
         match self {
             Self::CSV(path) => {
                 let mut file = File::create(path)?;

@@ -35,8 +35,13 @@ impl ReactionNetwork {
         let null_adjacent_reactions = HashSet::new();
         let possible_reactions = HashSet::new();
 
-        // Return a new instance of Self with the provided arguments and initialized fields.
-        Self { reactions, solution, null_adjacent_reactions, possible_reactions }
+        // Make a new instance of Self with the provided arguments and initialized fields.
+        let mut new_netowrk = Self{reactions, solution, null_adjacent_reactions, possible_reactions};
+
+        // Generate and cache null adjacent reactions up front
+        new_netowrk.gen_null_adjacent_reactions();
+
+        return new_netowrk;
     }
 
     pub fn get_null_adjacent_reactions(&self) -> &HashSet<Reaction> {
