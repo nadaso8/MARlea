@@ -71,7 +71,7 @@ impl MarleaEngine {
         } 
     }
 
-    pub fn main(&self) -> bool {
+    pub fn run(&self) -> bool {
         // vector containing all trial results
         let mut simulation_results = HashSet::new();
 
@@ -383,4 +383,8 @@ impl SupportedFileType {
             )),
         }
     }
+}
+
+fn main () {
+    
 }
