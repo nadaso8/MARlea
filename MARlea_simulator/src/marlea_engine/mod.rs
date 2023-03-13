@@ -52,7 +52,6 @@ pub struct MarleaEngine {
 
 impl MarleaEngine {
     pub fn new(
-        &self,
         input_path: String,
         init_path: Option<String>,
         out_path: Option<String>,
@@ -110,9 +109,32 @@ impl MarleaEngine {
     }
     
     fn average_trials(trial_results: HashSet<TrialResult>) -> Vec<(Species, f64)> {
-        // Calculate the average value for each species after being simulated and add it to an alphebetically sorted list. 
-        todo!()
+        let mut summed_values = HashMap::<Species, f64>::new();
+        let num_trials = trial_results.len() as f64;
+    
+        // Sum values of each species across all trials
+        for result in &trial_results {
+            for (name, count) in result.result.clone() {
+                if let Species::Name(name) = name {
+                    if let Species::Count(count) = count  {
+                        *summed_values.entry(Species::Name(name.to_string())).or_default() += count as f64;    
+                    }
+                } else {
+                    panic!("Got non-species name when calculating averages");
+                }
+            }
+        }
+    
+        // Calculate averages and sort alphabetically
+        let mut averaged_values: Vec<(Species, f64)> = summed_values.into_iter().map(|(key, value)| (key, value / num_trials)).collect();
+        averaged_values.sort_by_key(|(species, _)| match species {
+            Species::Name(name) => name.clone(),
+            _ => panic!("Unsupported Species variant found while sorting"),
+        });
+    
+        return averaged_values;
     }
+    
 
     fn solution_from(file_path: Option<String>, reactions: &HashSet<Reaction>) -> HashMap<Species, Species> {
         if let Some(path) = file_path {
