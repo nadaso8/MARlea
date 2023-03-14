@@ -1,12 +1,11 @@
 [package]
-name = "MARlea_simulator"
+name = "Marlea"
 version = "0.0.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+csv = "1.2.1"
 rand = "0.8.5"
-csv = "1.2.0"
-marlea_engine = "0.0.1"
 structopt = "0.3"
