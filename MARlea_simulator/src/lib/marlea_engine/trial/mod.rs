@@ -64,10 +64,13 @@ impl Trial {
     ///
     /// A reference to a HashMap that contains all the `species` after simulation keyd by their references.
     pub fn simulate(&mut self) -> TrialResult {
+        let mut step_count = 0; 
         loop{
+            step_count += 1; 
             self.step();
              // If a stable state has been reached, return the current network solution
             if let Stability::Stable = self.stability {
+                println!("stable after {} steps", step_count);
                 return TrialResult{result: self.reaction_network.get_solution().clone()};
             }
 
@@ -75,80 +78,73 @@ impl Trial {
     }
 
     /// Handles progressing the simulation one step further by evaluating the current status of the system and performing reactions if necessary.
-// This function determines the stability of a reaction network and sets the self.stability enum according 
-// to the specific conditions met by evaluating the functions get_possible_reactions and get_null_adjacent_reactions. 
-// If neither empty nor subset of null reactions, then the network is unstable because there exists a valid reaction,
-// otherwise it's initially stable until it enters into one of these states: SemiStable, Stable or Unstable.
-fn step(&mut self) {
+    // This function determines the stability of a reaction network and sets the self.stability enum according 
+    // to the specific conditions met by evaluating the functions get_possible_reactions and get_null_adjacent_reactions. 
+    // If neither empty nor subset of null reactions, then the network is unstable because there exists a valid reaction,
+    // otherwise it's initially stable until it enters into one of these states: SemiStable, Stable or Unstable.
+    fn step(&mut self) {
 
-    match self.stability {
-        
-        Stability::Initial => {
-
-            // Check if no reaction is possible
-            if self.reaction_network.get_possible_reactions().is_empty() {
-                self.stability = Stability::Stable;
-            }
-
-            // Check if all possible reactions are adjacent to null reactions
-            else if self.reaction_network.get_possible_reactions().is_subset(&self.reaction_network.get_null_adjacent_reactions()) {
-                self.stability = Stability::SemiStable(0);
-            } 
+        match self.stability {
             
-            // Otherwise, the network is unstable
-            else {
-                self.stability = Stability::Unstable;
-            }
-        } 
-
-        // When in unstable state, make sure isn't stable. then react and set to unstable or semi-stable
-        Stability::Unstable => {
-
-            // check again for no possible reactions, and set as stable
-            if self.reaction_network.get_possible_reactions().is_empty() {
-                self.stability = Stability::Stable;
-            }
-            // check if all possible reactions are adjacent to null reactions
-            else if self.reaction_network.get_possible_reactions().is_subset(self.reaction_network.get_null_adjacent_reactions()) {
+            Stability::Initial => {
                 self.reaction_network.react();
-                self.stability = Stability::SemiStable(0);
-            }
-            // the reaction network is still unstable
-            else {
-                self.reaction_network.react();
-                self.stability = Stability::Unstable;
-            }
-        }
 
-        // When in semi-stable state, make sure isn't stable. then react and set to unstable or semi-stable
-        Stability::SemiStable(count) => {
-
-            // check again for no possible reactions, and set as stable
-            if self.reaction_network.get_possible_reactions().is_empty() {
-                self.stability = Stability::Stable;
-
-            // check if all possible reactions are adjacent to null reactions and has not reached maximum SemiStable cycles    
-            } else if self.reaction_network.get_possible_reactions().is_subset(self.reaction_network.get_null_adjacent_reactions()) && count < MAX_SEMI_STABLE_CYCLES {
-                    self.reaction_network.react();
-                    self.stability = Stability::SemiStable(count + 1);
-            
-            // Maximum SemiStable cycles reached, change to stable state
-            } else if self.reaction_network.get_possible_reactions().is_subset(self.reaction_network.get_null_adjacent_reactions()) && count >= MAX_SEMI_STABLE_CYCLES {
-                    self.reaction_network.react();
+                if self.reaction_network.get_possible_reactions().is_empty() {
                     self.stability = Stability::Stable;
-            
-            // the reaction network is still unstable
-            } else {
-                self.stability = Stability::Unstable;
-            }
-        }
+                }
 
-        // network is initially stable and remains stable
-        Stability::Stable => {
-            self.stability = Stability::Stable;
+                else if self.reaction_network.get_possible_reactions().is_subset(&self.reaction_network.get_null_adjacent_reactions()) {
+                    self.stability = Stability::SemiStable(0);
+                } 
+                
+                else {
+                    self.stability = Stability::Unstable;
+                }
+            } 
+
+            Stability::Unstable => {
+                self.reaction_network.react();
+
+                if self.reaction_network.get_possible_reactions().is_empty() {
+                    self.stability = Stability::Stable;
+                }
+
+                else if self.reaction_network.get_possible_reactions().is_subset(self.reaction_network.get_null_adjacent_reactions()) {
+                    self.stability = Stability::SemiStable(0);
+                }
+
+                else {
+                    self.stability = Stability::Unstable;
+                }
+            }
+
+            Stability::SemiStable(count) => {
+                self.reaction_network.react();
+
+                if self.reaction_network.get_possible_reactions().is_empty() {
+                    self.stability = Stability::Stable;
+
+
+                } else if self.reaction_network.get_possible_reactions().is_subset(self.reaction_network.get_null_adjacent_reactions()) && count < MAX_SEMI_STABLE_CYCLES {
+                        self.reaction_network.react();
+                        self.stability = Stability::SemiStable(count + 1);
+                
+
+                } else if self.reaction_network.get_possible_reactions().is_subset(self.reaction_network.get_null_adjacent_reactions()) && count >= MAX_SEMI_STABLE_CYCLES {
+                        self.reaction_network.react();
+                        self.stability = Stability::Stable;
+                
+
+                } else {
+                    self.stability = Stability::Unstable;
+                }
+            }
+
+            Stability::Stable => {
+                self.stability = Stability::Stable;
+            }
         }
     }
-}
 
 }
 

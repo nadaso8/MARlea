@@ -3,7 +3,7 @@ use rand::Rng;
 use reaction::{Reaction, term::species::Species};
 
 pub mod reaction; 
-//pub mod tests;
+pub mod tests;
 
 #[derive(Clone)]
 /// A `ReactionNetwork` represents a computational netowork of chemical reactions.
@@ -113,7 +113,7 @@ impl ReactionNetwork {
 
     // Get a possible reaction from the set of possible reactions with weighted probability
     pub fn get_next_reaction<'getting> (&'getting self) -> Option<Reaction> {
-        let mut index = rand::thread_rng().gen_range(0.. self.sum_reaction_rates() + 1);
+        let mut index = rand::thread_rng().gen_range(0.. self.sum_reaction_rates());
         let mut next_reaction: Option<Reaction>= None;
 
         // iterate through all possible valid reactions and pick one based on its probability 
@@ -134,27 +134,27 @@ impl ReactionNetwork {
         // update the list of possible reactions. 
         self.find_possible_reactions();
 
-        // if the system has a next reaction, modify the solutions containing reactants and products 
-        if let Some(reaction) = self.get_next_reaction() {
-            for reactant in reaction.get_reactants() {
-                self.solution.entry(reactant.get_species_name().clone())
-                    .and_modify(|species_count|
-                        if let Species::Count(current_count) =species_count{
-                            *current_count -= reactant.get_coefficient();
-                        });
-            }
+        if !self.possible_reactions.is_empty() {
+            if let Some(reaction) = self.get_next_reaction() {
+                for reactant in reaction.get_reactants() {
+                    self.solution.entry(reactant.get_species_name().clone())
+                        .and_modify(|species_count|
+                            if let Species::Count(current_count) =species_count{
+                                *current_count -= reactant.get_coefficient();
+                            });
+                }
 
-            for product in reaction.get_products() {
-                self.solution.entry(product.get_species_name().clone())
-                    .and_modify(|species_count|
-                        if let Species::Count(current_count) = species_count {
-                            *current_count += product.get_coefficient();
-                        });
+                for product in reaction.get_products() {
+                    self.solution.entry(product.get_species_name().clone())
+                        .and_modify(|species_count|
+                            if let Species::Count(current_count) = species_count {
+                                *current_count += product.get_coefficient();
+                            });
+                }
+            } 
+            else {
+                panic!("failed to get next reaction in react()");
             }
-        } 
-        // else, panic with an error message 
-        else {
-            panic!("failed to get next reaction in react()");
         }
     }
 

@@ -71,27 +71,8 @@ enum Query {
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "Marlea",
-    about = 
-"/// A command line program for simulating DNA based chemical reaction networks.
-///
-/// This program takes some CSV as input and performs stochastic simulation on the provided system,
-/// then prints results either to a specified output file or the command line.
-///
-/// Usage:
-///     marlea [OPTIONS] <QUERY> <INPUT_FILE>
-///
-/// Arguments:
-///     <QUERY>                          Specify the operation/query to perform. Possible values: \"settings\", \"validate\", \"simulate\", \"help\".
-///     <INPUT_FILE>                     Input file path to use.
-///
-/// Options:
-///     -i, --init-file <FILE_NAME>      Specifies a file to read starting conditions from. If omitted it is assumed that starting conditions are provided in a marked section of the input file; if not provided in either location it is assumed that all species start at count 0.
-///     -o, --output-file <FILE_NAME>    Specifies a file where the program should write its results. If omitted program will only print to the command line.
-///     -t, --num-trials <NUM_TRIALS>    Specifies the number of times the simulation should simulate the chemical reaction network.
-///     -r, --max-runtime <MAX_RUNTIME> Specifies the maximum time the simulation is allowed to run for in seconds.",
 )]
 struct MarleaOpts {
-    about: String,
     query: Query,
     #[structopt(parse(from_os_str))]
     input_file: PathBuf,
@@ -140,7 +121,23 @@ fn main () {
     // Match query and perform appropriate action
     match opts.query {
         // Just print Usage information if `help` query is provided
-        Query::Help => println!("{}", MarleaOpts::clap().about(&*format!("{}", opts.about))),
+        Query::Help => println!("{}", MarleaOpts::clap().about(&*format!(
+            "A command line program for simulating DNA based chemical reaction networks.
+            
+            This program takes some CSV as input and performs stochastic simulation on the provided system,
+            then prints results either to a specified output file or the command line.
+            
+            Usage: marlea <QUERY> <INPUT_FILE> [Options]
+            Arguments:
+                <QUERY>                          Specify the operation/query to perform. Possible values: \"settings\", \"validate\", \"simulate\", \"help\".
+                <INPUT_FILE>                     Input file path to use.
+            
+            Options:
+                -i, --init-file <FILE_NAME>      Specifies a file to read starting conditions from. If omitted it is assumed that starting conditions are provided in a marked section of the input file; if not provided in either location it is assumed that all species start at count 0.
+                -o, --output-file <FILE_NAME>    Specifies a file where the program should write its results. If omitted program will only print to the command line.
+                -t, --num-trials <NUM_TRIALS>    Specifies the number of times the simulation should simulate the chemical reaction network.
+                -r, --max-runtime <MAX_RUNTIME> Specifies the maximum time the simulation is allowed to run for in seconds."
+        ))),
 
         // If `simulate` query is provided, create new instance of MarleaEngine with parsed options, then run it
         Query::Simulate => {

@@ -5,6 +5,8 @@ use csv::ReaderBuilder;
 use std::io::Write;
 use std::path::Path;
 use std::collections::{HashMap, HashSet};
+
+use super::trial::reaction_network::reaction::term;
 pub enum SupportedFileType {
 CSV(String),
 XML(String),
@@ -59,13 +61,14 @@ impl SupportedFileType {
                             }
                             
                             // Split left side fields into space sign delimited sub fields and parse as reactants
-                            for term in left_side {
-                                reactants.insert(Term::from(term));
+                            for term_string in left_side {
+                                if let Some(term) = Term::from(term_string) {reactants.insert(term);}
+
                             }             
 
                             // Split right side fields into space delimited subfields and parse as products
-                            for term in right_side {
-                                products.insert(Term::from(term));
+                            for term_string in right_side {
+                                if let Some(term) = Term::from(term_string) {products.insert(term);}
                             }
 
                             // Parse the last field as reaction_rate

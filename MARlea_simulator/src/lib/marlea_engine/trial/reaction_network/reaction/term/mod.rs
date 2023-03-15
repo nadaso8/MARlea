@@ -13,7 +13,9 @@ pub struct  Term {
 
 impl Term {
 
-    pub fn from(term: &str) -> Self {
+    /// creates a new term from a string slice
+    /// returns none if the term sould be null
+    pub fn from(term: &str) -> Option<Self> {
         let mut species_name = None;
         let mut coefficient = None;
         let parts: Vec<&str> = term.split(" ").filter(|possible_part| !possible_part.is_empty()).collect();
@@ -43,13 +45,13 @@ impl Term {
         if let Some(parsed_name) = species_name {
             match coefficient {
                 Some(parsed_value) => {
-                    return Term::new(parsed_name, parsed_value);
+                    return Some(Term::new(parsed_name, parsed_value));
                 },
                 None => {
-                    return Term::new(parsed_name, 1 as u8);
+                    return Some(Term::new(parsed_name, 1 as u8));
                 }
             }
-        } else {panic!("No species name was found in {}", term)}
+        } else {return None}
     }
 
     pub fn new(name: String, coefficient: u8) -> Self {
@@ -97,16 +99,19 @@ fn test_from() {
     let term_2 = " NaOH";
     let term_3 = "5 O2";
     let term_4 = "2water NaCl"; // minorly invalid input 
+    let term_5 = "";// null input
 
-    let expected_1 = Term::new(String::from("water"), 2);
-    let expected_2 = Term::new(String::from("NaOH"), 1); //default coefficient should be 1 if not specified
-    let expected_3 = Term::new(String::from("O2"), 5);
-    let expected_4 = Term::new(String::from("2water"), 1);
+    let expected_1 = Some(Term::new(String::from("water"), 2));
+    let expected_2 = Some(Term::new(String::from("NaOH"), 1)); //default coefficient should be 1 if not specified
+    let expected_3 = Some(Term::new(String::from("O2"), 5));
+    let expected_4 = Some(Term::new(String::from("2water"), 1));
+    let expected_5 = None;
 
     assert_eq!(Term::from(&term_1), expected_1);
     assert_eq!(Term::from(&term_2), expected_2);
     assert_eq!(Term::from(&term_3), expected_3);
     assert_eq!(Term::from(&term_4), expected_4);
+    assert_eq!(Term::from(&term_5), expected_5);
 
 }
 
