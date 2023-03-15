@@ -89,36 +89,32 @@ impl MarleaEngine {
         if let Some(path) = &self.out_path {
             let output_file = SupportedFileType::from(path.clone());
             for field in Self::average_trials(simulation_results) {
-                match field.0 {
-                    Species::Name(name) => output_file.write(&format!("{},{}\n",name,field.1)).unwrap(),
-                    Species::Count(count) => panic!("Count species variant {} found in results", count),
-                    Species::Threshold(_threshold) => panic!("Threshold species variant found in results"),
+                if let Err(error) = output_file.write(&format!("{},{}", field.0, field.1)) {
+                    panic!("{}", error);
                 }
             }
         }
         else {
             for field in Self::average_trials(simulation_results) {
-                match field.0 {
-                    Species::Name(name) => println!("{},{}",name,field.1),
-                    Species::Count(count) => panic!("Count species variant {} found in results", count),
-                    Species::Threshold(_threshold) => panic!("Threshold species variant found in results"),
-                }
+                println!("{},{}",field.0,field.1);
             }
         }
         
         return true;
     }
     
-    fn average_trials(trial_results: HashSet<TrialResult>) -> Vec<(Species, f64)> {
-        let mut summed_values = HashMap::<Species, f64>::new();
+    fn average_trials(trial_results: HashSet<TrialResult>) -> Vec<(String, f64)> {
+        let mut summed_values = HashMap::<String, f64>::new();
         let num_trials = trial_results.len() as f64;
     
         // Sum values of each species across all trials
         for result in &trial_results {
             for (name, count) in result.result.clone() {
-                if let Species::Name(name) = name {
-                    if let Species::Count(count) = count  {
-                        *summed_values.entry(Species::Name(name.to_string())).or_default() += count as f64;    
+                if let Species::Name(species_name) = name {
+                    if let Species::Count(species_count) = count  {
+                        summed_values.entry(species_name)
+                        .and_modify(|summed_count| *summed_count +=  species_count as f64)
+                        .or_insert(species_count as f64);    
                     }
                 } else {
                     panic!("Got non-species name when calculating averages");
@@ -127,12 +123,12 @@ impl MarleaEngine {
         }
     
         // Calculate averages and sort alphabetically
-        let mut averaged_values: Vec<(Species, f64)> = summed_values.into_iter().map(|(key, value)| (key, value / num_trials)).collect();
-        /*averaged_values.sort_by_key(|(species, _)| match species {
-            Species::Name(name) => name.clone(),
-            _ => panic!("Unsupported Species variant found while sorting"),
-        });*/
-    
+        let mut averaged_values: Vec<(String, f64)> = summed_values
+                        .into_iter()
+                        .map(|(key, value)| (key, value / num_trials))
+                        .collect();
+        averaged_values.sort_by_key(|(species, _)| species.to_owned());
+
         return averaged_values;
     }
     
