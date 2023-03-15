@@ -101,8 +101,8 @@ impl ReactionNetwork {
         }
     }
 
-    fn sum_reaction_rates (&self) -> u64 {
-        let mut sum: u64 = 0; 
+    fn sum_reaction_rates (&self) -> u128 {
+        let mut sum: u128 = 0; 
         // loop over all possible reactions and sum their reaction rates
         for reaction in &self.possible_reactions {
             sum += reaction.get_reaction_rate();

@@ -11,13 +11,13 @@ use term::{Term, species::Species};
 pub struct Reaction {
     reactants: HashSet<Term>,
     products: HashSet<Term>,
-    reaction_rate: u32,
+    reaction_rate: u64,
 }
 
 impl Reaction {
 
-    pub fn new (reactants: HashSet<Term>, products: HashSet<Term>, reaction_rate: usize) -> Self {
-        return Self { reactants: reactants, products: products, reaction_rate: reaction_rate.try_into().unwrap()};
+    pub fn new (reactants: HashSet<Term>, products: HashSet<Term>, reaction_rate: u64) -> Self {
+        return Self { reactants: reactants, products: products, reaction_rate: reaction_rate};
     }
     
     /// returns a reference to the reactants set within a reaction
@@ -31,8 +31,8 @@ impl Reaction {
     }
 
     /// returns the reaction rate
-    pub fn get_reaction_rate (&self) -> u64 {
-        return self.reaction_rate as u64;
+    pub fn get_reaction_rate (&self) -> u128 {
+        return self.reaction_rate as u128;
     }
 
     pub fn is_possible (&self, solution: &HashMap<Species,Species>) -> bool {

@@ -11,7 +11,7 @@ pub enum SupportedFileType {
 CSV(String),
 XML(String),
 JSON(String),
-Unsuported,
+Unsuported(String),
 }
 
 impl SupportedFileType {
@@ -25,7 +25,8 @@ impl SupportedFileType {
             Some("csv") => Self::CSV(file_path),
             Some("json") => Self::JSON(file_path),
             Some("xml") => Self::XML(file_path),
-            _ => Self::Unsuported,
+            Some(other_file_type) => Self::Unsuported(other_file_type.to_string()),
+            _=> panic!("no_file_extension_found")
         }
     }
 
@@ -73,7 +74,7 @@ impl SupportedFileType {
 
                             // Parse the last field as reaction_rate
                             let rate_str = record[1].trim();
-                            let rate = rate_str.parse::<usize>().unwrap_or_else(|_| panic!("Invalid reaction rate '{}' provided", record[1].to_string()));
+                            let rate = rate_str.parse::<u64>().unwrap_or_else(|_| panic!("Invalid reaction rate '{}' provided", record[1].to_string()));
 
                             reactions.insert(Reaction::new(reactants, products, rate));
                         }
@@ -86,7 +87,7 @@ impl SupportedFileType {
             }, // End of handling CSV files
             Self::JSON(path) => todo!(),
             Self::XML(path) => todo!(), 
-            Self::Unsuported => panic!("Unsupported file type"), 
+            Self::Unsuported(file_type) => panic!("Unsupported file type: found {}, expects CSV", file_type), 
             
 
         } //  End of outer match {Self} (SupportedFileType enum Type)
@@ -152,7 +153,7 @@ impl SupportedFileType {
             }
             Self::XML(path) => unimplemented!(),
             Self::JSON(path) => unimplemented!(),
-            _ => panic!("Unsupported file type"),
+            Self::Unsuported(file_type) => panic!("Unsupported file type: found {}, expects CSV", file_type), 
         }
     }
 
@@ -166,7 +167,7 @@ impl SupportedFileType {
             },
             Self::JSON(path) => todo!(), // implement JSON writing
             Self::XML(path) => todo!(), // implement XML writing
-            Self::Unsuported => Err(std::io::Error::new(
+            Self::Unsuported(other_file_tyep) => Err(std::io::Error::new(
                 std::io::ErrorKind::Other, 
                 "Unsupported file type"
             )),
