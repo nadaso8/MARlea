@@ -11,10 +11,10 @@ A command line program for simulating DNA based chemical reaction networks.
 This program takes some CSV as input and performs stochastic simulation on the provided system,
 then prints results either to a specified output file or the command line.
             
-Usage: marlea `<QUERY>` `<INPUT_FILE>` `[Options]`
+Usage: Marlea `<QUERY>` `<INPUT_FILE>` `[Options]`
 ### Arguments:
-`<QUERY>` - Specify the operation/query to perform. Possible values: \"settings\", \"validate\", \"simulate\", \"help\".
-`<INPUT_FILE>` - Input file path to use.
+ - `<QUERY>` - Specify the operation/query to perform. Possible values: \"settings\", \"validate\", \"simulate\", \"help\".
+ - `<INPUT_FILE>` - Input file path to use.
             
 ### Options:
  -  -i, --init-file `<FILE_NAME>`      Specifies a file to read starting conditions from. If omitted it is assumed that starting conditions are provided in a marked section of the input file; if not provided in either location it is assumed that all species start at count 0.
