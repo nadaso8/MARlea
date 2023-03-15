@@ -65,9 +65,7 @@ impl Trial {
     /// A reference to a HashMap that contains all the `species` after simulation keyd by their references.
     pub fn simulate(&mut self) -> TrialResult {
         loop{
-
             self.step();
-
              // If a stable state has been reached, return the current network solution
             if let Stability::Stable = self.stability {
                 return TrialResult{result: self.reaction_network.get_solution().clone()};

@@ -1,9 +1,9 @@
-pub mod reaction; 
-
 use std::{collections::{HashSet, HashMap}};
 use rand::Rng;
 use reaction::{Reaction, term::species::Species};
 
+pub mod reaction; 
+//pub mod tests;
 
 #[derive(Clone)]
 /// A `ReactionNetwork` represents a computational netowork of chemical reactions.

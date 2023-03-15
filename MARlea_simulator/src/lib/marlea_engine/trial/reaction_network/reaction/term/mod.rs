@@ -13,8 +13,47 @@ pub struct  Term {
 
 impl Term {
 
-    pub fn new(name: String, coefficient: usize) -> Self {
-        return Term{species_name:Species::Name(name), coefficient: coefficient.try_into().unwrap()};
+    pub fn from(term: &str) -> Self {
+        let mut species_name = None;
+        let mut coefficient = None;
+        let parts: Vec<&str> = term.split(" ").filter(|possible_part| !possible_part.is_empty()).collect();
+
+        for part in parts {
+
+            // if there is no coefficent try to parse as coefficent else parse as a name 
+            let possible_coefficient = part.trim().parse::<u8>();
+            let possible_name = part.trim().to_string();
+
+            match possible_coefficient {
+                Ok(value) => {
+                    if let None = coefficient {coefficient = Some(value)}
+                    else {panic!("more than one numeric value provided: it is unclear which is desired coefficient")}
+                }
+                Err(_) => {
+                    if let None = species_name {species_name = Some(possible_name)}
+                    else {
+                        // non catastrophic error warn user with a print to console. 
+                        print!("more than one possible name found in Term {}.\n{} was used as parsed name and coefficient was assumed to be 1.", term, species_name.clone().unwrap());
+                    }
+                }
+            }
+
+        }
+
+        if let Some(parsed_name) = species_name {
+            match coefficient {
+                Some(parsed_value) => {
+                    return Term::new(parsed_name, parsed_value);
+                },
+                None => {
+                    return Term::new(parsed_name, 1 as u8);
+                }
+            }
+        } else {panic!("No species name was found in {}", term)}
+    }
+
+    pub fn new(name: String, coefficient: u8) -> Self {
+        return Term{species_name:Species::Name(name), coefficient};
     }
     /// returns the coefficient value of a Term
     pub fn get_coefficient (&self) -> u64 {
@@ -51,5 +90,25 @@ mod tests {
         let term = Term::new(String::from("water"), 1);
         assert_eq!(*term.get_species_name(), Species::Name(String::from("water")));
     }
+
+#[test]
+fn test_from() {
+    let term_1 = "2 water";
+    let term_2 = " NaOH";
+    let term_3 = "5 O2";
+    let term_4 = "2water NaCl"; // minorly invalid input 
+
+    let expected_1 = Term::new(String::from("water"), 2);
+    let expected_2 = Term::new(String::from("NaOH"), 1); //default coefficient should be 1 if not specified
+    let expected_3 = Term::new(String::from("O2"), 5);
+    let expected_4 = Term::new(String::from("2water"), 1);
+
+    assert_eq!(Term::from(&term_1), expected_1);
+    assert_eq!(Term::from(&term_2), expected_2);
+    assert_eq!(Term::from(&term_3), expected_3);
+    assert_eq!(Term::from(&term_4), expected_4);
+
+}
+
 }
 
