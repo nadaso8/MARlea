@@ -1,0 +1,4 @@
+input => multiply_step,1
+multiply_step + multiply_by => multiply_step + multiplied_by + output,10000000000
+multiply_step => ,100000
+multiplied_by => multiply_by,100000

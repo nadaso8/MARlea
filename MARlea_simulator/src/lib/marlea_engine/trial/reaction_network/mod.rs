@@ -69,17 +69,11 @@ impl ReactionNetwork {
 
                                 if null_generated_species == secondary_reactant.get_species_name() {
                                     // Insert the reaction into the null_adjacent_reactions HashSet.
-                                    // Fail if we cannot insert the reaction into the hashset.
-                                    if !self.null_adjacent_reactions.insert(secondary_reaction.clone()) {
-                                        panic!("failed to insert into null_adjacent_reactions");
-                                    }
+                                    self.null_adjacent_reactions.insert(secondary_reaction.clone());
                                 }
                             }
                         }
                     }
-                }
-                else {
-                    panic!("failed to insert into null_adjacent_reactions");
                 }
             }
         }

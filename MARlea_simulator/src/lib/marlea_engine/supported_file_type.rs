@@ -1,6 +1,6 @@
 
 use crate::marlea_engine::{reaction_network::reaction::{Reaction, term::{Term, species::Species}}};
-use std::fs::File;
+use std::{fs::File};
 use csv::ReaderBuilder; 
 use std::io::Write;
 use std::path::Path;
@@ -44,8 +44,21 @@ impl SupportedFileType {
                 match reader {
                     Ok(mut reader) => { // If file exists and was opened successfully
                         
-                        // Filter records read by the returned CSVReader iterator and Ignore errors
-                        let records = reader.records().filter_map(Result::ok);
+                        // Filter empty rows out of the returned reader and panic if reader encounters an error
+                        let records = reader.records().filter_map(
+                            |record|
+                            match record {
+                                Ok(mut string) => {
+                                    string.trim();
+                                    if string[0].is_empty() && string[1].is_empty() {
+                                        None
+                                    } else {
+                                        Some(string)
+                                    }
+                                }
+                                Err(error) => {panic!("{}", error)}
+                            }
+                        );
                         let mut reactions = HashSet::new();
                         
                         for record in records {
@@ -54,12 +67,13 @@ impl SupportedFileType {
                             
                             // Find "=>" and split sides
                             let sides: Vec<&str> = record[0].split("=>").collect();
+                            if sides.len() != 2 {
+                                panic!("Invalid reaction format - expected 'reactants => products' but received [{}]", record[0].to_string());
+                            }
                             let left_side: Vec<&str> = sides[0].split('+').collect();
                             let right_side: Vec<&str> = sides[1].split('+').collect();
 
-                            if sides.len() != 2 {
-                                panic!("Invalid reaction format - expected 'reactants => products' but received '{}'", record[0].to_string());
-                            }
+
                             
                             // Split left side fields into space sign delimited sub fields and parse as reactants
                             for term_string in left_side {
