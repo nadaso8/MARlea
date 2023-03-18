@@ -1,0 +1,8 @@
+﻿fibonacci.call + setup.done.not => fibonacci.call + setup.call,1
+fibonacci.call + setup.done => calculate.call,1
+setup.call + setup.done => setup.call,10000
+fibonacci.call + fibonacci.done => fibonacci.call,10000
+calculate.done + fibonacci.call => calculate.done,10000
+calculate.done + fibonacci.call.not => fibonacci.done,1
+fibonacci.done + calculate.done => fibonacci.done,10000
+fibonacci.done + current_value => result,10000

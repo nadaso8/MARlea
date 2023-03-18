@@ -1,0 +1,74 @@
+﻿calculate.call + loop.not => loop.start + calculate.call,1
+loop.start + index => loop + last_value.assign,1
+loop + loop.done => loop,10000
+2 last_value.assign => last_value.assign ,10000
+,
+last_value.assign + current_value => last_value.assign + last_value,10000
+last_value.assign + current_value.not => current_value.not ,1
+last_value.assign.not + current_value.not => current_value.assign ,1
+2 current_value.assign => current_value.assign ,10000
+,
+current_value.assign + next_value => next_value.copy + current_value.assign ,10000
+current_value.assign + next_value.not  => next_value.copy.split,1
+next_value.copy.split + current_value.assign => next_value.copy.split,10000
+2 next_value.copy.split => next_value.copy.split,10000
+,
+next_value.copy.split + next_value.copy => next_value + current_value + next_value.copy.split,10000
+next_value.copy.not + next_value.copy.split => next_value.copy.not,1
+next_value.copy.not + next_value.copy.split.not => next_value.add,1
+2 next_value.add => next_value.add,10000
+,
+next_value.add + last_value => next_value + next_value.add,10000
+next_value.add + last_value.not => last_value.not,1
+next_value.add.not + last_value.not => loop.clean,1
+2 loop.clean => loop.clean,10000
+loop.clean + loop => loop.clean ,1
+loop.clean + loop.not => loop.done,1
+2 loop.done => loop.done,10000
+loop.done + loop.clean => loop.done,1
+index.not + calculate.call => index.not,1
+loop.done + index.not => calculate.done + loop.done + index.not,1
+,
+ => setup.call.not,1
+setup.call + setup.call.not => setup.call,10000
+2 setup.call.not => setup.call.not,10000
+ => setup.done.not ,1
+setup.done + setup.done.not => setup.done,10000
+2 setup.done.not => setup.done.not,10000
+ => fibonacci.call.not ,1
+fibonacci.call + fibonacci.call.not => fibonacci.call,10000
+2 fibonacci.call.not => fibonacci.call.not ,10000
+ => destruct.not,1
+destruct + destruct.not => destruct ,10000
+2 destruct.not => destruct.not,10000
+ => last_value.not ,1
+last_value + last_value.not => last_value ,10000
+2 last_value.not => last_value.not,10000
+ => last_value.clear.not,1
+last_value.clear + last_value.clear.not => last_value.clear,10000
+2 last_value.clear.not => last_value.clear.not,10000
+ => current_value.not,1
+current_value + current_value.not => current_value,10000
+2 current_value.not => current_value.not,10000
+ => next_value.not,1
+next_value + next_value.not => next_value,10000
+2 next_value.not => next_value.not,10000
+ => next_value.copy.not ,1
+next_value.copy + next_value.copy.not => next_value.copy,10000
+2 next_value.copy.not => next_value.copy.not,10000
+ => next_value.copy.split.not,1
+next_value.copy.split + next_value.copy.split.not => next_value.copy.split,10000
+2 next_value.copy.split.not => next_value.copy.split.not,10000
+ => loop.not,1
+loop + loop.not => loop ,10000
+2 loop.not => loop.not,10000
+ => index.not,1
+index + index.not => index,10000
+2 index.not => index.not,10000
+,
+2 fibonacci.call => fibonacci.call,10000
+2 fibonacci.done => fibonacci.done,10000
+2 calculate.call => calculate.call,10000
+2 calculate.done => calculate.done,10000
+2 setup.done => setup.done,10000
+2 setup.call => setup.call ,10000
