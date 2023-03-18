@@ -1,1 +1,0 @@
-FilterMap<StringRecordsIter<'_, File>, fn(Result<StringRecord, csv::Error>) -> Result<Result<StringRecord, csv::Error>, _> {Result::<Result<StringRecord, csv::Error>, _>::Ok}>
