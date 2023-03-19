@@ -76,14 +76,16 @@ struct MarleaOpts {
     query: Query,
     #[structopt(parse(from_os_str))]
     input_file: PathBuf,
-    #[structopt(short="-i", long)]
+    #[structopt(short="-i", long="--init")]
     init_file: Option<String>,
-    #[structopt(short="-o", long)]
+    #[structopt(short="-o", long="--out")]
     output_file: Option<String>,
-    #[structopt(short="-t", long)]
+    #[structopt(short="-t", long="--trials")]
     num_trials: Option<usize>,
-    #[structopt(short="-r", long)]
+    #[structopt(short="-r", long="--runtime")]
     max_runtime: Option<u64>,
+    #[structopt(short="s", long="--stability_tolerance")]
+    max_semi_stable_steps: Option<i32>,
 }
 
 
@@ -104,19 +106,9 @@ impl std::str::FromStr for Query {
 
 
 fn main () {
-    // Parse command line arguments as MarleaOpts struct
     let opts = MarleaOpts::from_args();
 
-    // Get input file path as string
     let input_path_string = opts.input_file.to_string_lossy().into_owned();
-    // Get initial conditions file path as option-string
-    let init_path = opts.init_file;
-    // Get output file path as option-string
-    let out_path = opts.output_file;
-    // Get number of trials to simulate as option-usize
-    let num_trials = opts.num_trials;
-    // Get maximum runtime in seconds as option-u64
-    let max_runtime = opts.max_runtime;
 
     // Match query and perform appropriate action
     match opts.query {
@@ -141,8 +133,14 @@ fn main () {
 
         // If `simulate` query is provided, create new instance of MarleaEngine with parsed options, then run it
         Query::Simulate => {
-            // Create new instance of MarleaEngine with parsed options
-            let engine = marlea_engine::MarleaEngine::new(input_path_string, init_path, out_path, num_trials, max_runtime);
+            let engine = marlea_engine::MarleaEngine::new(
+                opts.input_file.to_string_lossy().into_owned(), 
+                opts.init_file, 
+                opts.output_file, 
+                opts.num_trials, 
+                opts.max_runtime,
+                opts.max_semi_stable_steps,
+            );
             // Run MarleaEngine
             engine.run();
         },

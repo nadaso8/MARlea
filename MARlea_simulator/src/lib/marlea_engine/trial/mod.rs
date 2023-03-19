@@ -16,14 +16,13 @@
 
 // Import necessary modules 
 pub mod reaction_network; // Module that holds our ReactionNetwork details
-use std::collections::HashMap; // Hashmap class used collectively within the module
+use std::{collections::HashMap, num}; // Hashmap class used collectively within the module
 use reaction_network::{ReactionNetwork, reaction::term::species::Species}; // Import relevant classes from ReactionNetwork module
-
-const MAX_SEMI_STABLE_CYCLES: i32 = 99; // maximum number of cycles before a semi-stable network is marked as stable
 
 pub struct Trial {
     reaction_network: ReactionNetwork, // Instance of Reaction Network for this trial
     stability: Stability, // Current stability status of the trial/experiment (initially set to "Initial")
+    max_semi_stable_steps: i32,
 }
 
 
@@ -45,10 +44,18 @@ impl std::hash::Hash for TrialResult {
 impl Trial {
 
     /// Generates a new instance of `Trial` by taking in an instance of `ReactionNetwork`.
-    pub fn from(reaction_network: ReactionNetwork) -> Self {
+    pub fn from(reaction_network: ReactionNetwork, max_semi_stable_steps_setting: Option<i32>) -> Self {
+        let mut max_semi_stable_steps: i32; 
+        if let Some(number) = max_semi_stable_steps_setting {
+            max_semi_stable_steps = number;
+        } else {
+            max_semi_stable_steps = 99;
+        }
+        
         Self {
             reaction_network,
             stability: Stability::Initial,
+            max_semi_stable_steps,
         }
     }
 
@@ -125,12 +132,12 @@ impl Trial {
                     self.stability = Stability::Stable;
 
 
-                } else if self.reaction_network.get_possible_reactions().is_subset(self.reaction_network.get_null_adjacent_reactions()) && count < MAX_SEMI_STABLE_CYCLES {
+                } else if self.reaction_network.get_possible_reactions().is_subset(self.reaction_network.get_null_adjacent_reactions()) && count < self.max_semi_stable_steps {
                         self.reaction_network.react();
                         self.stability = Stability::SemiStable(count + 1);
                 
 
-                } else if self.reaction_network.get_possible_reactions().is_subset(self.reaction_network.get_null_adjacent_reactions()) && count >= MAX_SEMI_STABLE_CYCLES {
+                } else if self.reaction_network.get_possible_reactions().is_subset(self.reaction_network.get_null_adjacent_reactions()) && count >= self.max_semi_stable_steps {
                         self.reaction_network.react();
                         self.stability = Stability::Stable;
                 

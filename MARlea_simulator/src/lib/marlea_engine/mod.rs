@@ -43,10 +43,13 @@ mod supported_file_type;
 mod tests;
 
 pub struct MarleaEngine {
+    // set externally
     out_path: Option<String>,
     num_trials: Option<usize>,
     max_runtime: Option<u64>,
+    max_semi_stable_steps: Option<i32>,
 
+    // constructed with struct
     prime_network: ReactionNetwork
 }
 
@@ -57,6 +60,7 @@ impl MarleaEngine {
         out_path: Option<String>,
         num_trials: Option<usize>,
         max_runtime: Option<u64>,
+        max_semi_stable_steps: Option<i32>
     ) -> Self { 
         
         let reactions = SupportedFileType::from(input_path).parse_reactions();
@@ -67,6 +71,7 @@ impl MarleaEngine {
         out_path,
         num_trials,
         max_runtime,
+        max_semi_stable_steps,
         prime_network,
         } 
     }
@@ -80,7 +85,7 @@ impl MarleaEngine {
         let mut trial_count = 0;
         while trial_count <= match self.num_trials{Some(number) => number, None => 100} {
             trial_count += 1;
-            let mut current_trial = trial::Trial::from(self.prime_network.clone());
+            let mut current_trial = trial::Trial::from(self.prime_network.clone(), self.max_semi_stable_steps);
             simulation_results.insert(current_trial.simulate());
         }
 

@@ -103,7 +103,7 @@ fn test_new() {
     let init_path = Some(String::from("init.csv"));
     let num_trials = Some(10);
     let max_runtime = None;
-    let app = MarleaEngine::new(input_path.clone(), init_path, None, num_trials, max_runtime);
+    let app = MarleaEngine::new(input_path.clone(), init_path, None, num_trials, max_runtime, None);
     // assertions
     assert_eq!(app.out_path, None);
     assert_eq!(app.num_trials, num_trials);
@@ -112,7 +112,7 @@ fn test_new() {
     assert_eq!(app.prime_network.get_solution().len(), 5); // example value, update based on actual input
 
     // test case with all parameters none
-    let app = MarleaEngine::new(input_path.clone(), None, None, None, None);
+    let app = MarleaEngine::new(input_path.clone(), None, None, None, None, None);
     // assertions
     assert_eq!(app.out_path, None);
     assert_eq!(app.num_trials, None);
@@ -123,7 +123,7 @@ fn test_new() {
     // test case with out_path and max_runtime
     let out_path = Some(String::from("out.csv"));
     let max_runtime = Some(60);
-    let app = MarleaEngine::new(input_path, None, out_path.clone(), None, max_runtime);
+    let app = MarleaEngine::new(input_path, None, out_path.clone(), None, max_runtime, None);
     // assertions
     assert_eq!(app.out_path, out_path);
     assert_eq!(app.num_trials, None);
