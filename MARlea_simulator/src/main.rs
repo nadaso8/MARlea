@@ -84,7 +84,7 @@ struct MarleaOpts {
     num_trials: Option<usize>,
     #[structopt(short="-r", long="--runtime")]
     max_runtime: Option<u64>,
-    #[structopt(short="s", long="--stability_tolerance")]
+    #[structopt(short="-s", long="--stability_tolerance")]
     max_semi_stable_steps: Option<i32>,
 }
 
