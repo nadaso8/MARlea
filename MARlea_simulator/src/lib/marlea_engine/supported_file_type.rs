@@ -6,7 +6,6 @@ use std::io::Write;
 use std::path::Path;
 use std::collections::{HashMap, HashSet};
 
-use super::trial::reaction_network::reaction::term;
 pub enum SupportedFileType {
 CSV(String),
 XML(String),
@@ -99,8 +98,8 @@ impl SupportedFileType {
                     Err(error) => panic!("{}", error),
                 } // end of inner match { OK(CSVReader) vs. Error(String) }  
             }, // End of handling CSV files
-            Self::JSON(path) => todo!(),
-            Self::XML(path) => todo!(), 
+            Self::JSON(_path) => todo!(),
+            Self::XML(_path) => todo!(), 
             Self::Unsuported(file_type) => panic!("Unsupported file type: found {}, expects CSV", file_type), 
             
 
@@ -165,8 +164,8 @@ impl SupportedFileType {
                     Err(error) => panic!("error occurred while reading csv file: {}", error), // Handle reader error here
                 }
             }
-            Self::XML(path) => unimplemented!(),
-            Self::JSON(path) => unimplemented!(),
+            Self::XML(_path) => unimplemented!(),
+            Self::JSON(_path) => unimplemented!(),
             Self::Unsuported(file_type) => panic!("Unsupported file type: found {}, expects CSV", file_type), 
         }
     }
@@ -179,9 +178,9 @@ impl SupportedFileType {
                 let mut file = File::create(path)?;
                 file.write_all(content.as_bytes())
             },
-            Self::JSON(path) => todo!(), // implement JSON writing
-            Self::XML(path) => todo!(), // implement XML writing
-            Self::Unsuported(other_file_tyep) => Err(std::io::Error::new(
+            Self::JSON(_path) => todo!(), // implement JSON writing
+            Self::XML(_path) => todo!(), // implement XML writing
+            Self::Unsuported(_other_file_tyep) => Err(std::io::Error::new(
                 std::io::ErrorKind::Other, 
                 "Unsupported file type"
             )),

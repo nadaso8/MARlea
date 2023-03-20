@@ -16,7 +16,7 @@
 
 // Import necessary modules 
 pub mod reaction_network; // Module that holds our ReactionNetwork details
-use std::{collections::HashMap, num}; // Hashmap class used collectively within the module
+use std::{collections::HashMap}; // Hashmap class used collectively within the module
 use reaction_network::{ReactionNetwork, reaction::term::species::Species}; // Import relevant classes from ReactionNetwork module
 
 pub struct Trial {
@@ -45,7 +45,7 @@ impl Trial {
 
     /// Generates a new instance of `Trial` by taking in an instance of `ReactionNetwork`.
     pub fn from(reaction_network: ReactionNetwork, max_semi_stable_steps_setting: Option<i32>) -> Self {
-        let mut max_semi_stable_steps: i32; 
+        let max_semi_stable_steps: i32; 
         if let Some(number) = max_semi_stable_steps_setting {
             max_semi_stable_steps = number;
         } else {
@@ -80,7 +80,6 @@ impl Trial {
                 println!("stable after {} steps", step_count);
                 return TrialResult{result: self.reaction_network.get_solution().clone()};
             }
-
         }
     }
 

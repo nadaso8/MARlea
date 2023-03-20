@@ -32,6 +32,7 @@
 
 use std::collections::{HashMap, HashSet};
 
+use std::sync::mpsc::{channel, Sender};
 use std::usize;
 use supported_file_type::SupportedFileType; 
 use trial::{*, reaction_network::{ReactionNetwork, reaction::{Reaction, term::species::Species}}}; 
@@ -49,7 +50,7 @@ pub struct MarleaEngine {
     max_runtime: Option<u64>,
     max_semi_stable_steps: Option<i32>,
 
-    // constructed with struct
+    // constructed by struct
     prime_network: ReactionNetwork
 }
 
@@ -60,7 +61,7 @@ impl MarleaEngine {
         out_path: Option<String>,
         num_trials: Option<usize>,
         max_runtime: Option<u64>,
-        max_semi_stable_steps: Option<i32>
+        max_semi_stable_steps: Option<i32>,
     ) -> Self { 
         
         let reactions = SupportedFileType::from(input_path).parse_reactions();
@@ -78,33 +79,43 @@ impl MarleaEngine {
 
     pub fn run(&self) -> bool {
         // vector containing all trial results
-        let mut simulation_results = HashSet::new();
+        let mut simulation_results = HashSet::new();  
 
-        // Set up simulation loop
-        // TODO Implement max_runtime timer for simulation
-        let mut trial_count = 0;
-        while trial_count <= match self.num_trials{Some(number) => number, None => 100} {
-            trial_count += 1;
-            let mut current_trial = trial::Trial::from(self.prime_network.clone(), self.max_semi_stable_steps);
-            simulation_results.insert(current_trial.simulate());
+        // setup threadpool 
+        let computation_threads = futures::executor::ThreadPool::new().unwrap();
+        let results_channel = channel();
+
+        // start runtime timer
+        let timer_channel = channel();
+        if let Some(time) = self.max_runtime {
+            computation_threads.spawn_ok(Self::engine_runtime_timer(time, timer_channel.0));
         }
 
-        //Generate results content and print to console
-        let mut content: String = String::new(); 
-        for field in Self::average_trials(simulation_results) {
-            print!("{},{}\n", field.0, field.1);
-            content.push_str( &format!("{},{}\n", field.0, field.1));
-        }
+        // setup loop for assigning new tasks
+        let mut trials_recieved = 0;
+        let max_trials = match self.num_trials{Some(number) => number, None => 100};
 
-        //write results if output option ennabled
-        if let Some(path) = &self.out_path {
-            let output_file = SupportedFileType::from(path.clone());
-            if let Err(error) = output_file.write(&content) {
-                panic!("{}", error);
+        // tasks for trial results
+        while trials_recieved < max_trials {
+
+            let current_trial = trial::Trial::from(self.prime_network.clone(), self.max_semi_stable_steps);
+            computation_threads.spawn_ok(Self::new_trial_task(results_channel.0.clone(), current_trial));
+
+            // check for new results
+            if let Ok(result) = results_channel.1.try_recv() {
+                simulation_results.insert(result);
+                trials_recieved += 1;
+                println!("recieved {} trials", trials_recieved);
+            }
+
+            if let Ok(_) = timer_channel.1.try_recv() {
+                println!("forced termination because max time was reached\n\nWARNING: returned results may not be accurate and should be used for debugging purposes only");
+                break;
             }
         }
-        
-        return true;
+
+        return self.terminate(simulation_results);
+
     }
     
     fn average_trials(trial_results: HashSet<TrialResult>) -> Vec<(String, f64)> {
@@ -159,6 +170,37 @@ impl MarleaEngine {
         return solution; 
     }
 
+    fn terminate(&self, simulation_results: HashSet<TrialResult>) -> bool {
+        //Generate results content and print to console
+        let mut content: String = String::new(); 
+        for field in Self::average_trials(simulation_results) {
+            print!("{},{}\n", field.0, field.1);
+            content.push_str( &format!("{},{}\n", field.0, field.1));
+        }
+
+        //write results if output option ennabled
+        if let Some(path) = &self.out_path {
+            let output_file = SupportedFileType::from(path.clone());
+            if let Err(error) = output_file.write(&content) {
+                panic!("{}", error);
+            }
+        }
+        return true;
+    }
+
+    async fn new_trial_task(tx: Sender<TrialResult>, mut current_trial: Trial) {
+        let result = current_trial.simulate();
+        tx.send(result).unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(30));
+        return;
+    }
+
+    async fn engine_runtime_timer(runtime: u64, tx: Sender<bool>) {
+        let max_runtime = std::time::Duration::from_secs(runtime);
+        std::thread::sleep(max_runtime);
+        tx.send(true).unwrap();
+        return;
+    }
 
 }
 
