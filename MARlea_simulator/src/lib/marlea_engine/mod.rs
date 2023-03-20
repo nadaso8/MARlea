@@ -93,19 +93,25 @@ impl MarleaEngine {
 
         // setup loop for assigning new tasks
         let mut trials_recieved = 0;
+        let mut trials_created = 0;
         let max_trials = match self.num_trials{Some(number) => number, None => 100};
 
         // tasks for trial results
         while trials_recieved < max_trials {
 
-            let current_trial = trial::Trial::from(self.prime_network.clone(), self.max_semi_stable_steps);
-            computation_threads.spawn_ok(Self::new_trial_task(results_channel.0.clone(), current_trial));
+            // spawn new trials while more are necesarry
+            if trials_created < max_trials {
+                let current_trial = trial::Trial::from(self.prime_network.clone(), self.max_semi_stable_steps);
+                computation_threads.spawn_ok(Self::new_trial_task(results_channel.0.clone(), current_trial));
+                trials_created += 1;
+            }
 
             // check for new results
             if let Ok(result) = results_channel.1.try_recv() {
-                simulation_results.insert(result);
                 trials_recieved += 1;
-                println!("recieved {} trials", trials_recieved);
+                println!("Trial stable after {} steps", result.steps);
+                println!("Recieved {} trials", trials_recieved);
+                simulation_results.insert(result);
             }
 
             if let Ok(_) = timer_channel.1.try_recv() {

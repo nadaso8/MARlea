@@ -29,6 +29,7 @@ pub struct Trial {
 #[derive(Eq, PartialEq, Clone)]
 pub struct TrialResult {
     pub result: HashMap<Species, Species>,
+    pub steps: i32,
 }
 
 // implementation of hash for result
@@ -77,8 +78,7 @@ impl Trial {
             self.step();
              // If a stable state has been reached, return the current network solution
             if let Stability::Stable = self.stability {
-                println!("stable after {} steps", step_count);
-                return TrialResult{result: self.reaction_network.get_solution().clone()};
+                return TrialResult{result: self.reaction_network.get_solution().clone(), steps: step_count};
             }
         }
     }

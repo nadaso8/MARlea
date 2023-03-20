@@ -29,6 +29,7 @@ fn test_no_path() {
 #[cfg(test)]
 #[test]
 fn test_average_trials() {
+    let steps = 0;
     // Prepare input data
     let mut trial_results = HashSet::new();
     
@@ -44,9 +45,9 @@ fn test_average_trials() {
     result3.insert(Species::Name("Giraffe".to_string()), Species::Count(1));
     result3.insert(Species::Name("Elephant".to_string()), Species::Count(2));
 
-    trial_results.insert(TrialResult{ result: result1 });
-    trial_results.insert(TrialResult{ result: result2 });
-    trial_results.insert(TrialResult{ result: result3 });
+    trial_results.insert(TrialResult{ result: result1 , steps});
+    trial_results.insert(TrialResult{ result: result2 , steps});
+    trial_results.insert(TrialResult{ result: result3 , steps});
 
     // Call the function
     let averaged_values = MarleaEngine::average_trials(trial_results);
