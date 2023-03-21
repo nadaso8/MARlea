@@ -116,7 +116,7 @@ fn main () {
         Query::Help => println!("{}", MarleaOpts::clap().about(&*format!(
             "A command line program for simulating DNA based chemical reaction networks.
             
-            This program takes some CSV as input and performs stochastic simulation on the provided system,
+            This program takes some CSV (other formats remain unimplemented) as input and performs stochastic simulation on the provided system,
             then prints results either to a specified output file or the command line.
             
             Usage: marlea <QUERY> <INPUT_FILE> [Options]
@@ -125,10 +125,11 @@ fn main () {
                 <INPUT_FILE>                     Input file path to use.
             
             Options:
-                -i, --init-file <FILE_NAME>      Specifies a file to read starting conditions from. If omitted it is assumed that starting conditions are provided in a marked section of the input file; if not provided in either location it is assumed that all species start at count 0.
-                -o, --output-file <FILE_NAME>    Specifies a file where the program should write its results. If omitted program will only print to the command line.
-                -t, --num-trials <NUM_TRIALS>    Specifies the number of times the simulation should simulate the chemical reaction network.
-                -r, --max-runtime <MAX_RUNTIME> Specifies the maximum time the simulation is allowed to run for in seconds."
+                -i, --init <FILE_NAME>      Specifies a file to read starting conditions from. If omitted it is assumed that starting conditions are provided in a marked section of the input file; if not provided in either location it is assumed that all species start at count 0.
+                -o, --out <FILE_NAME>    Specifies a file where the program should write its results. If omitted program will only print to the command line.
+                -t, --trials <NUM_TRIALS>    Specifies the number of times the simulation should simulate the chemical reaction network.
+                -r, --runtime <MAX_RUNTIME> Specifies the maximum time the simulation is allowed to run for in seconds.
+                -s, --stability_tolerance <SEMI_STABLE_TRIALS> **Advanced** Specifies the number of successive semi stable trials to run before terminated"
         ))),
 
         // If `simulate` query is provided, create new instance of MarleaEngine with parsed options, then run it
