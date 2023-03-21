@@ -17,15 +17,16 @@ Usage: Marlea `<QUERY>` `<INPUT_FILE>` `[Options]`
  - `<INPUT_FILE>` - Input file path to use.
             
 ### Options:
- -  -i, --init-file `<FILE_NAME>`      Specifies a file to read starting conditions from. If omitted it is assumed that starting conditions are provided in a marked section of the input file; if not provided in either location it is assumed that all species start at count 0.
- -  -o, --output-file `<FILE_NAME>`    Specifies a file where the program should write its results. If omitted program will only print to the command line.
- -  -t, --num-trials `<NUM_TRIALS>`    Specifies the number of times the simulation should simulate the chemical reaction network.
- -  -r, --max-runtime `<MAX_RUNTIME>` Specifies the maximum time the simulation is allowed to run for in seconds."
+ -  -i, --init-file `<FILE_NAME>`      Specifies a file to read starting conditions from. By default if no file is specified the default is to assign species a count of 0, this is also the default for species not listed within the specified file. 
+ -  -o, --output-file `<FILE_NAME>`    Specifies a file where the program should write its results. If omitted program will only print to the command line. By default this will simply use console output. 
+ -  -t, --num-trials `<NUM_TRIALS>`    Specifies the number of times the simulation should simulate the chemical reaction network. By default this is 100 trials
+ -  -r, --max-runtime `<MAX_RUNTIME>` Specifies the maximum time the simulation is allowed to run for in seconds. By default runtime is unbounded
+ -  -s, **Advanced** sets how tollerant each simulation will be of semi stable states. By defualt each trial will terminate after being semi stable for 100 steps. 
  
  ## input syntax 
  ### reactants/products
  `<coefficient> <species name>`
- - Note: coefficient may be ommited if it is 1
+ - Note: If coefficient is ommited it defaults to 1
  ### reaction
  `<reactant + <reactant> => <product> + <product>, <reaction_rate>`
  - Note: there may be any number of reactants or products including 0 
