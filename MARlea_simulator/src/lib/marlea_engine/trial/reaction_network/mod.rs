@@ -1,6 +1,6 @@
 use std::{collections::{HashSet, HashMap}};
 use rand::Rng;
-use reaction::{Reaction, term::species::Species};
+use reaction::{Reaction, term::solution::{Species, Solution}};
 
 pub mod reaction; 
 pub mod tests;
@@ -25,12 +25,12 @@ pub struct ReactionNetwork {
     reactions: HashSet<Reaction>,
     possible_reactions: HashSet<Reaction>, 
     null_adjacent_reactions: HashSet<Reaction>,
-    solution: HashMap<Species, Species>,
+    solution: Solution,
 }
 
 impl ReactionNetwork {
 
-    pub fn new(reactions: HashSet<Reaction>, solution: HashMap<Species, Species>)-> Self {
+    pub fn new(reactions: HashSet<Reaction>, solution: Solution)-> Self {
         // Initialize null_adjacent_reactions and possible_reactions as empty HashSet
         let null_adjacent_reactions = HashSet::new();
         let possible_reactions = HashSet::new();
@@ -89,7 +89,7 @@ impl ReactionNetwork {
         
         // loop over all reactions and check if it's possible for them to occur based on current species concentration
         for reaction in &self.reactions {
-            if reaction.is_possible(&self.solution) {
+            if reaction.is_possible(&self.solution.species_counts) {
                 self.possible_reactions.insert(reaction.clone()); // add reaction to list of possible reactions
             }
         }
@@ -131,7 +131,7 @@ impl ReactionNetwork {
         if !self.possible_reactions.is_empty() {
             if let Some(reaction) = self.get_next_reaction() {
                 for reactant in reaction.get_reactants() {
-                    self.solution.entry(reactant.get_species_name().clone())
+                    self.solution.species_counts.entry(reactant.get_species_name().clone())
                         .and_modify(|species_count|
                             if let Species::Count(current_count) =species_count{
                                 *current_count -= reactant.get_coefficient();
@@ -139,7 +139,7 @@ impl ReactionNetwork {
                 }
 
                 for product in reaction.get_products() {
-                    self.solution.entry(product.get_species_name().clone())
+                    self.solution.species_counts.entry(product.get_species_name().clone())
                         .and_modify(|species_count|
                             if let Species::Count(current_count) = species_count {
                                 *current_count += product.get_coefficient();
@@ -153,7 +153,7 @@ impl ReactionNetwork {
     }
 
     // returns a reference to the map containing the current state of the reaction network 
-    pub fn get_solution(&self) -> &HashMap<Species, Species> {
+    pub fn get_solution(&self) -> &Solution {
         return &self.solution;
     }
 

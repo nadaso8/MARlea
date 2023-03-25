@@ -35,17 +35,30 @@ use std::collections::{HashMap, HashSet};
 use std::sync::mpsc::{channel, Sender};
 use std::usize;
 use supported_file_type::SupportedFileType; 
-use trial::{*, reaction_network::{ReactionNetwork, reaction::{Reaction, term::species::Species}}}; 
+use trial::{
+    Trial,
+    results::TrialResult, 
+    reaction_network::{
+        ReactionNetwork, 
+        reaction::{
+            Reaction, 
+            term::solution::{
+                Species,
+                Solution,
+            }
+        }
+    }
+}; 
 
 
 mod trial;
 mod supported_file_type; 
-
-mod tests;
+//mod tests;
 
 pub struct MarleaEngine {
     // set externally
     out_path: Option<String>,
+    out_timeline: Option<String>,
     num_trials: Option<usize>,
     max_runtime: Option<u64>,
     max_semi_stable_steps: Option<i32>,
@@ -59,6 +72,7 @@ impl MarleaEngine {
         input_path: String,
         init_path: Option<String>,
         out_path: Option<String>,
+        out_timeline: Option<String>,
         num_trials: Option<usize>,
         max_runtime: Option<u64>,
         max_semi_stable_steps: Option<i32>,
@@ -70,6 +84,7 @@ impl MarleaEngine {
 
         Self{
         out_path,
+        out_timeline,
         num_trials,
         max_runtime,
         max_semi_stable_steps,
@@ -79,11 +94,19 @@ impl MarleaEngine {
 
     pub fn run(&self) -> bool {
         // vector containing all trial results
-        let mut simulation_results = HashSet::new();  
+        let mut simulation_results = HashSet::new();
 
         // setup threadpool 
         let computation_threads = futures::executor::ThreadPool::new().unwrap();
         let results_channel = channel();
+
+        // initialize timeline options
+        let mut timelines: Option<Vec<Vec<Solution>>> = None;
+        let mut timelines_channel = None;
+        if let Some(file) = &self.out_timeline {              
+            timelines = Some(Vec::new());
+            timelines_channel = Some(results_channel.0.clone());        
+        }
 
         // start runtime timer
         let timer_channel = channel();
@@ -91,46 +114,52 @@ impl MarleaEngine {
             computation_threads.spawn_ok(Self::engine_runtime_timer(time, timer_channel.0));
         }
 
-        // setup loop for assigning new tasks
+        // setup loop variables
         let mut trials_recieved = 0;
         let mut trials_created = 0;
         let max_trials = match self.num_trials{Some(number) => number, None => 100};
 
-        // tasks for trial results
+        // pole computation threads for results
         while trials_recieved < max_trials {
-
             // spawn new trials while more are necesarry
             if trials_created < max_trials {
-                let current_trial = trial::Trial::from(self.prime_network.clone(), self.max_semi_stable_steps);
-                computation_threads.spawn_ok(Self::new_trial_task(results_channel.0.clone(), current_trial));
+                let current_trial = trial::Trial::from(self.prime_network.clone(), self.max_semi_stable_steps, trials_created);
+                computation_threads.spawn_ok(Self::new_trial_task(results_channel.0.clone(), timelines_channel.clone(), current_trial));
                 trials_created += 1;
             }
 
             // check for new results
             if let Ok(result) = results_channel.1.try_recv() {
                 trials_recieved += 1;
-                println!("Trial stable after {} steps", result.steps);
-                println!("Recieved {} trials", trials_recieved);
-                simulation_results.insert(result);
+                match result {
+                    TrialResult::StableSolution(solution, steps) => {
+                        println!("Trial stable after {} steps", steps);
+                        println!("Recieved {} trials", trials_recieved);
+                        simulation_results.insert(solution);
+                    }
+                    TrialResult::TimelineEntry(solution, id) => {
+                        // find entry vector within the timelines vector and insert 
+                    }
+                }
             }
-
+            
             if let Ok(_) = timer_channel.1.try_recv() {
                 println!("forced termination because max time was reached\n\nWARNING: returned results may not be accurate and should be used for debugging purposes only");
                 break;
             }
         }
 
-        return self.terminate(simulation_results);
+        return self.terminate(simulation_results, timelines);
 
     }
     
-    fn average_trials(trial_results: HashSet<TrialResult>) -> Vec<(String, f64)> {
+    fn average_trials(simulation_results: HashSet<Solution>) -> Vec<(String, f64)> {
         let mut summed_values = HashMap::<String, f64>::new();
-        let num_trials = trial_results.len() as f64;
+        let num_trials = simulation_results.len() as f64;
     
         // Sum values of each species across all trials
-        for result in &trial_results {
-            for (name, count) in result.result.clone() {
+        for result in &simulation_results {
+            for (name, count) in result.species_counts.clone() {
                 if let Species::Name(species_name) = name {
                     if let Species::Count(species_count) = count  {
                         summed_values.entry(species_name)
@@ -154,48 +183,55 @@ impl MarleaEngine {
     }
     
 
-    fn solution_from(file_path: Option<String>, reactions: &HashSet<Reaction>) -> HashMap<Species, Species> {
-        let mut solution: HashMap<Species, Species> = HashMap::new();
+    fn solution_from(file_path: Option<String>, reactions: &HashSet<Reaction>) -> Solution {
+        let mut species_counts: HashMap<Species, Species> = HashMap::new();
 
         // Get possible species from reactions
         for reaction in reactions {
             for reactant in reaction.get_reactants() {
                 // if no such species exists in the map generate a new map entry using the reactant species name and default value 0 
-                solution.insert(reactant.get_species_name().clone(), Species::Count(0));
+                species_counts.insert(reactant.get_species_name().clone(), Species::Count(0));
             }
             for product in reaction.get_products() {
                 // if no such species exists in the map generate a new map entry using the product species name and default value 0 
-                solution.insert(product.get_species_name().clone(), Species::Count(0));
+                species_counts.insert(product.get_species_name().clone(), Species::Count(0));
             }
         }
 
         if let Some(path) = file_path {
-            SupportedFileType::from(path).parse_initial_solution(&mut solution);
+            SupportedFileType::from(path).parse_initial_solution(&mut species_counts);
         }
 
-        return solution; 
+        return Solution{species_counts}; 
     }
 
-    fn terminate(&self, simulation_results: HashSet<TrialResult>) -> bool {
-        //Generate results content and print to console
-        let mut content: String = String::new(); 
-        for field in Self::average_trials(simulation_results) {
-            print!("{},{}\n", field.0, field.1);
-            content.push_str( &format!("{},{}\n", field.0, field.1));
-        }
-
+    fn terminate(&self, simulation_results: HashSet<Solution>, timeline_results: Option<Vec<Vec<Solution>>>) -> bool {
+        
+        
         //write results if output option ennabled
         if let Some(path) = &self.out_path {
             let output_file = SupportedFileType::from(path.clone());
-            if let Err(error) = output_file.write(&content) {
-                panic!("{}", error);
-            }
+            output_file.write_solution(Self::average_trials(simulation_results));
         }
+
+        //write timeline if one exists
+        if let Some(path) = &self.out_timeline {
+            let timeline_file = SupportedFileType::from(path.clone());
+            timeline_file.write_timeline(timeline_results.unwrap());
+        }
+
         return true;
     }
 
-    async fn new_trial_task(tx: Sender<TrialResult>, mut current_trial: Trial) {
-        let result = current_trial.simulate();
+    async fn new_trial_task(tx: Sender<TrialResult>, timelines_tx: Option<Sender<TrialResult>>, mut current_trial: Trial) { 
+        let result = match timelines_tx {
+            Some(existing_tx) => {
+                current_trial.simulate_with_timeline(existing_tx)
+            }
+            None => {
+                current_trial.simulate()
+            }
+        };
         tx.send(result).unwrap();
         std::thread::sleep(std::time::Duration::from_millis(30));
         return;

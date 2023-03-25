@@ -13,39 +13,23 @@
 /// You can then run simulations on this Trial instance using the simulate() function.
 /// It returns a HashMap containing all the species keyd by their references in the stable network solution.
 
+use reaction_network::{ReactionNetwork, reaction::term::solution::{Solution}};
+use results::TrialResult;
+use std::sync::mpsc::Sender;
 
-// Import necessary modules 
-pub mod reaction_network; // Module that holds our ReactionNetwork details
-use std::{collections::HashMap}; // Hashmap class used collectively within the module
-use reaction_network::{ReactionNetwork, reaction::term::species::Species}; // Import relevant classes from ReactionNetwork module
+pub mod reaction_network; 
+pub mod results;
 
 pub struct Trial {
-    reaction_network: ReactionNetwork, // Instance of Reaction Network for this trial
-    stability: Stability, // Current stability status of the trial/experiment (initially set to "Initial")
+    reaction_network: ReactionNetwork,
+    stability: Stability, 
     max_semi_stable_steps: i32,
+    id: usize,
 }
-
-
-#[derive(Eq, PartialEq, Clone)]
-pub struct TrialResult {
-    pub result: HashMap<Species, Species>,
-    pub steps: i32,
-}
-
-// implementation of hash for result
-impl std::hash::Hash for TrialResult {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        for entry in self.result.iter() {
-            entry.hash(state);
-        }      
-    }
-}
-
 
 impl Trial {
 
-    /// Generates a new instance of `Trial` by taking in an instance of `ReactionNetwork`.
-    pub fn from(reaction_network: ReactionNetwork, max_semi_stable_steps_setting: Option<i32>) -> Self {
+    pub fn from(reaction_network: ReactionNetwork, max_semi_stable_steps_setting: Option<i32>, id: usize) -> Self {
         let max_semi_stable_steps: i32; 
         if let Some(number) = max_semi_stable_steps_setting {
             max_semi_stable_steps = number;
@@ -57,41 +41,35 @@ impl Trial {
             reaction_network,
             stability: Stability::Initial,
             max_semi_stable_steps,
+            id, 
         }
     }
 
-    /// This function simulates a Reaction Network by running reactions on it until the network
-    /// reaches a stable state. It takes it's self as a mutable reference to a Trial instance and returns a 
-    /// reference to a HashMap containing the Species instances in the stable network solution.
-    ///
-    /// # Arguments
-    ///
-    /// * `self` - A mutable reference to a Trial instance
-    ///
-    /// # Returns
-    ///
-    /// A reference to a HashMap that contains all the `species` after simulation keyd by their references.
+    pub fn simulate_with_timeline (&mut self, trial_tx: Sender<TrialResult>) -> TrialResult {
+        let mut step_count = 0; 
+        loop{
+            step_count += 1; 
+            self.step();
+            if let Stability::Stable = self.stability {
+                return TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count);
+            }
+            trial_tx.send(TrialResult::TimelineEntry(self.reaction_network.get_solution().clone(), self.id));
+        }   
+    }
+
     pub fn simulate(&mut self) -> TrialResult {
         let mut step_count = 0; 
         loop{
             step_count += 1; 
             self.step();
-             // If a stable state has been reached, return the current network solution
             if let Stability::Stable = self.stability {
-                return TrialResult{result: self.reaction_network.get_solution().clone(), steps: step_count};
+                return TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count);
             }
-        }
+        }   
     }
 
-    /// Handles progressing the simulation one step further by evaluating the current status of the system and performing reactions if necessary.
-    // This function determines the stability of a reaction network and sets the self.stability enum according 
-    // to the specific conditions met by evaluating the functions get_possible_reactions and get_null_adjacent_reactions. 
-    // If neither empty nor subset of null reactions, then the network is unstable because there exists a valid reaction,
-    // otherwise it's initially stable until it enters into one of these states: SemiStable, Stable or Unstable.
     fn step(&mut self) {
-
         match self.stability {
-            
             Stability::Initial => {
                 self.reaction_network.react();
 
@@ -151,7 +129,6 @@ impl Trial {
             }
         }
     }
-
 }
 
 enum Stability {

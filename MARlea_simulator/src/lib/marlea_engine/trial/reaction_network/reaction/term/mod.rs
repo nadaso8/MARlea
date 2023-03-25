@@ -1,6 +1,6 @@
-pub mod species;
+pub mod solution;
 
-use species::Species;
+use solution::Species;
 
 /// Contains the data for a single term within a larger reaction.
 /// Species is a reference to a named value in solution which will be added to or subtracted from. 

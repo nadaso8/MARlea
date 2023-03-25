@@ -1,10 +1,12 @@
 
-use crate::marlea_engine::{reaction_network::reaction::{Reaction, term::{Term, species::Species}}};
+use crate::marlea_engine::{trial::reaction_network::reaction::{Reaction, term::{Term, solution::Species}}};
 use std::{fs::File};
-use csv::ReaderBuilder; 
+use csv::{ReaderBuilder, WriterBuilder}; 
 use std::io::Write;
 use std::path::Path;
 use std::collections::{HashMap, HashSet};
+
+use super::trial::reaction_network::reaction::term::solution::Solution;
 
 pub enum SupportedFileType {
 CSV(String),
@@ -172,18 +174,36 @@ impl SupportedFileType {
 
 
 
-    pub fn write(&self, content: &String) -> std::io::Result<()> {
+    pub fn write_solution(&self, stable_solution: Vec<(String, f64)>) {
         match self {
             Self::CSV(path) => {
-                let mut file = File::create(path)?;
-                file.write_all(content.as_bytes())
+                let output_file = csv::WriterBuilder::new().from_path(path).unwrap();
+                
+                for entry in stable_solution  {
+                    output_file.write_record([entry.0, entry.1.to_string()]);
+                }
             },
             Self::JSON(_path) => todo!(), // implement JSON writing
             Self::XML(_path) => todo!(), // implement XML writing
-            Self::Unsuported(_other_file_tyep) => Err(std::io::Error::new(
-                std::io::ErrorKind::Other, 
-                "Unsupported file type"
-            )),
+            Self::Unsuported(other_file_type) => panic!("tried to write unsuported file type {}", other_file_type),
+        }
+    }
+
+    pub fn write_timeline(&self, timelines: Vec<Vec<Solution>>) {
+        match self {
+            Self::CSV(path) => {
+                let timeline_file = csv::WriterBuilder::new().from_path(path).unwrap();
+                
+                for timeline in timelines {
+                    for solution in timeline {
+                        timeline_file.write_record([solution.to_string()]);
+                    }
+                    timeline_file.write_record([""]);
+                }
+            },
+            Self::JSON(_path) => todo!(), // implement JSON writing
+            Self::XML(_path) => todo!(), // implement XML writing
+            Self::Unsuported(other_file_type) => panic!("tried to write unsuported file type{}", other_file_type),
         }
     }
 }

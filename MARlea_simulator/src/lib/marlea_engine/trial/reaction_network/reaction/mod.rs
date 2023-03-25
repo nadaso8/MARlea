@@ -2,7 +2,7 @@ pub mod term;
 
 use std::{collections::{HashSet, HashMap}, hash::{Hash, Hasher}};
 use std::collections::hash_map::DefaultHasher;
-use term::{Term, species::Species};
+use term::{Term, solution::Species};
 
 /// Stores a set for the reaction reactants and products. 
 /// Eeach element contains the variable key used by a Solution struct as well as a reaction rate. 

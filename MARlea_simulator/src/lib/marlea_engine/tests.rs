@@ -1,6 +1,6 @@
 use std::collections::{HashSet, HashMap};
 use std::iter::FromIterator;
-use crate::marlea_engine::{MarleaEngine, TrialResult, supported_file_type::SupportedFileType, reaction_network::reaction::{Reaction, term::{Term, species::Species}}};
+use crate::marlea_engine::{MarleaEngine, TrialResult, supported_file_type::SupportedFileType, reaction_network::reaction::{Reaction, term::{Term, solution::Species}}};
 
 #[test]
 fn test_no_path() {
