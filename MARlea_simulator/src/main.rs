@@ -46,6 +46,7 @@
 
 // Import necessary modules
 use std::{path::{Path, PathBuf}, process::ExitStatus};
+use futures::stream::TryBuffered;
 use structopt::StructOpt;
 use crate::lib::marlea_engine;
 
@@ -71,6 +72,7 @@ enum Query {
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "Marlea",
+    about = "A stochastic CRN simulator"
 )]
 struct MarleaOpts {
     query: Query,
@@ -80,6 +82,8 @@ struct MarleaOpts {
     init_file: Option<String>,
     #[structopt(short="-o", long="--out")]
     output_file: Option<String>,
+    #[structopt(short="-timeline", long="-timeline")]
+    output_timeline: Option<String>,
     #[structopt(short="-t", long="--trials")]
     num_trials: Option<usize>,
     #[structopt(short="-r", long="--runtime")]
@@ -107,8 +111,6 @@ impl std::str::FromStr for Query {
 
 fn main () {
     let opts = MarleaOpts::from_args();
-
-    let input_path_string = opts.input_file.to_string_lossy().into_owned();
 
     // Match query and perform appropriate action
     match opts.query {
@@ -138,6 +140,7 @@ fn main () {
                 opts.input_file.to_string_lossy().into_owned(), 
                 opts.init_file, 
                 opts.output_file, 
+                opts.output_timeline,
                 opts.num_trials, 
                 opts.max_runtime,
                 opts.max_semi_stable_steps,
