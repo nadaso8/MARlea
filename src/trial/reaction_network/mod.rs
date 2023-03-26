@@ -3,7 +3,6 @@ use rand::Rng;
 use reaction::{Reaction, term::species::Species};
 
 pub mod reaction; 
-pub mod tests;
 
 #[derive(Clone)]
 /// A `ReactionNetwork` represents a computational netowork of chemical reactions.
@@ -162,8 +161,4 @@ impl ReactionNetwork {
     }
 
 }
-
-
-
-
 

@@ -30,18 +30,17 @@
 ///     - XML UNIMPLEMENTED! 
 ///     - JSON UNIMPLEMENTED!
 
-use std::collections::{HashMap, HashSet};
-
-use std::sync::mpsc::{channel, Sender};
-use std::usize;
-use supported_file_type::SupportedFileType; 
-use trial::{*, reaction_network::{ReactionNetwork, reaction::{Reaction, term::species::Species}}}; 
-
-
 mod trial;
 mod supported_file_type; 
 
-mod tests;
+use std::collections::{HashMap, HashSet};
+use std::sync::mpsc::{channel, Sender};
+use std::usize;
+
+use crate::supported_file_type::SupportedFileType; 
+use crate::trial::{*, reaction_network::{ReactionNetwork, reaction::{Reaction, term::species::Species}}}; 
+
+
 
 pub struct MarleaEngine {
     // set externally
