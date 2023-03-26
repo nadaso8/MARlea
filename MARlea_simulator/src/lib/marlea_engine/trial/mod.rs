@@ -52,7 +52,8 @@ impl Trial {
             self.step();
             trial_tx.send(TrialResult::TimelineEntry(self.reaction_network.get_solution().clone(), self.id)).unwrap();
             if let Stability::Stable = self.stability {
-                trial_tx.send(TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count)).unwrap();
+                trial_tx.send(TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count))
+                    .expect("Reciever dropped... Closing simulation");
                 std::thread::sleep(std::time::Duration::from_millis(30));
             }
         }   
@@ -64,7 +65,8 @@ impl Trial {
             step_count += 1; 
             self.step();
             if let Stability::Stable = self.stability {
-                trial_tx.send(TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count)).unwrap();
+                trial_tx.send(TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count))
+                .expect("Reciever dropped... Closing simulation");
                 std::thread::sleep(std::time::Duration::from_millis(30));
             }
         }   

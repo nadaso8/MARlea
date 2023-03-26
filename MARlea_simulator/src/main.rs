@@ -61,7 +61,7 @@ enum Query {
     #[structopt(name = "settings")]
     //Settings,
     #[structopt(name = "validate")]
-    //Validate,
+    Validate,
     #[structopt(name = "simulate")]
     Simulate,
     #[structopt(name = "help")]
@@ -100,7 +100,7 @@ impl std::str::FromStr for Query {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.trim().to_lowercase().as_ref() {
             //"settings" => Ok(Query::Settings),
-            //"validate" => Ok(Query::Validate),
+            "validate" => Ok(Query::Validate),
             "simulate" => Ok(Query::Simulate),
             "help" => Ok(Query::Help),
             _ => Err(format!("Invalid query '{}'", s)),

@@ -48,7 +48,9 @@ use trial::{
             }
         }
     }
-}; 
+};
+
+use self::supported_file_type::TimelineWriter; 
 
 
 mod trial;
@@ -96,27 +98,30 @@ impl MarleaEngine {
         // vector containing all trial results
         let mut simulation_results = HashSet::new();
 
-        // Hashmap which will contain timeline if option is ennabled
-        let mut timelines: HashMap<usize, Vec<Solution>> = HashMap::new();
+        // setup loop variables
+        let mut trials_recieved = 0;
+        let mut trials_created = 0;
+        let max_trials = match self.num_trials{Some(number) => number, None => 100};        
 
         // setup threadpool 
         let computation_threads = futures::executor::ThreadPool::new().unwrap();
         let results_channel = channel();
 
-
+        // setup timeline writer if one is needed
+        let (timeline_writer_sender, timeline_writer_reciever) = channel();
+        if let Some(path) = &self.out_timeline {
+            let timeline_writer = TimelineWriter::new(SupportedFileType::from(path.clone()), timeline_writer_reciever);
+            computation_threads.spawn_ok(timeline_writer.begin_listen());
+        }
+  
         // start runtime timer
         let timer_channel = channel();
         if let Some(time) = self.max_runtime {
             computation_threads.spawn_ok(Self::engine_runtime_timer(time, timer_channel.0));
         }
 
-        // setup loop variables
-        let mut trials_recieved = 0;
-        let mut trials_created = 0;
-        let max_trials = match self.num_trials{Some(number) => number, None => 100};
-
         // create trials 
-        match self.out_timeline {
+        match &self.out_timeline {
             Some(_) => {
                 while trials_created < max_trials {
                     let current_trial = trial::Trial::from(self.prime_network.clone(), self.max_semi_stable_steps, trials_created);
@@ -144,9 +149,8 @@ impl MarleaEngine {
                         simulation_results.insert(solution);
                     }
                     TrialResult::TimelineEntry(solution, id) => {
-                        timelines.entry(id)
-                            .and_modify(|timeline| timeline.push(solution.clone()))
-                            .or_insert(vec![solution]); 
+                        timeline_writer_sender.send((solution, id))
+                            .expect("Timeline writer terminated earlier than expected...\nStopping simulation");
                     }
                 }
             }
@@ -157,7 +161,7 @@ impl MarleaEngine {
             }
         }
 
-        return self.terminate(simulation_results, timelines);
+        return self.terminate(simulation_results);
 
     }
     
@@ -213,19 +217,12 @@ impl MarleaEngine {
         return Solution{species_counts}; 
     }
 
-    fn terminate(&self, simulation_results: HashSet<Solution>, timeline_results: HashMap<usize, Vec<Solution>>) -> bool {
+    fn terminate(&self, simulation_results: HashSet<Solution>) -> bool {
         //write results if output option ennabled
         if let Some(path) = &self.out_path {
             let output_file = SupportedFileType::from(path.clone());
             output_file.write_solution(Self::average_trials(simulation_results));
         }
-
-        //write timeline if one exists
-        if let Some(path) = &self.out_timeline {
-            let timeline_file = SupportedFileType::from(path.clone());
-            timeline_file.write_timeline(timeline_results.into_iter());
-        }
-
         return true;
     }
 
