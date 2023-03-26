@@ -82,7 +82,7 @@ struct MarleaOpts {
     init_file: Option<String>,
     #[structopt(short="-o", long="--out")]
     output_file: Option<String>,
-    #[structopt(short="-timeline", long="-timeline")]
+    #[structopt(long="--timeline")]
     output_timeline: Option<String>,
     #[structopt(short="-t", long="--trials")]
     num_trials: Option<usize>,

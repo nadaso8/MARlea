@@ -156,11 +156,6 @@ impl ReactionNetwork {
     pub fn get_solution(&self) -> &Solution {
         return &self.solution;
     }
-
-    pub fn get_number_reactions(&self) -> usize {
-        return self.reactions.len();
-    }
-
 }
 
 

@@ -1,8 +1,6 @@
 
 use crate::marlea_engine::{trial::reaction_network::reaction::{Reaction, term::{Term, solution::Species}}};
-use std::{fs::File};
-use csv::{ReaderBuilder, WriterBuilder}; 
-use std::io::Write;
+use csv::ReaderBuilder; 
 use std::path::Path;
 use std::collections::{HashMap, HashSet};
 
@@ -177,10 +175,10 @@ impl SupportedFileType {
     pub fn write_solution(&self, stable_solution: Vec<(String, f64)>) {
         match self {
             Self::CSV(path) => {
-                let output_file = csv::WriterBuilder::new().from_path(path).unwrap();
+                let mut output_file = csv::WriterBuilder::new().from_path(path).unwrap();
                 
                 for entry in stable_solution  {
-                    output_file.write_record([entry.0, entry.1.to_string()]);
+                    output_file.write_record([entry.0, entry.1.to_string()]).unwrap();
                 }
             },
             Self::JSON(_path) => todo!(), // implement JSON writing
@@ -189,16 +187,29 @@ impl SupportedFileType {
         }
     }
 
-    pub fn write_timeline(&self, timelines: Vec<Vec<Solution>>) {
+    pub fn write_timeline(&self, timelines: std::collections::hash_map::IntoIter<usize, Vec<Solution>>) {
         match self {
             Self::CSV(path) => {
-                let timeline_file = csv::WriterBuilder::new().from_path(path).unwrap();
-                
+                let mut timeline_file = csv::WriterBuilder::new().from_path(path).unwrap();
+
                 for timeline in timelines {
-                    for solution in timeline {
-                        timeline_file.write_record([solution.to_string()]);
+                    println!("found {} solution steps in timeline {}", timeline.1.len(), timeline.0);
+
+                    let mut trial_header = Vec::new();
+                    let solution_width = timeline.1.get(0).unwrap().len();
+                    trial_header.push(format!("Timeline{}", timeline.0));
+                    for _index in 1..solution_width*2 {
+                        trial_header.push(format!("-"));
                     }
-                    timeline_file.write_record([""]);
+                    timeline_file.write_record(&trial_header).unwrap();
+
+                    for solution in timeline.1 {
+                        let mut record = Vec::new();
+                        for species in solution.into_iter() {
+                            record.append(&mut vec![species.0.to_string(), species.1.to_string()]);
+                        }
+                        timeline_file.write_record(&record).unwrap();
+                    }
                 }
             },
             Self::JSON(_path) => todo!(), // implement JSON writing

@@ -45,25 +45,27 @@ impl Trial {
         }
     }
 
-    pub fn simulate_with_timeline (&mut self, trial_tx: Sender<TrialResult>) -> TrialResult {
+    pub fn simulate_with_timeline (&mut self, trial_tx: Sender<TrialResult>)  {
         let mut step_count = 0; 
         loop{
             step_count += 1; 
             self.step();
+            trial_tx.send(TrialResult::TimelineEntry(self.reaction_network.get_solution().clone(), self.id)).unwrap();
             if let Stability::Stable = self.stability {
-                return TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count);
+                trial_tx.send(TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count)).unwrap();
+                std::thread::sleep(std::time::Duration::from_millis(30));
             }
-            trial_tx.send(TrialResult::TimelineEntry(self.reaction_network.get_solution().clone(), self.id));
         }   
     }
 
-    pub fn simulate(&mut self) -> TrialResult {
+    pub fn simulate(&mut self, trial_tx: Sender<TrialResult>) {
         let mut step_count = 0; 
         loop{
             step_count += 1; 
             self.step();
             if let Stability::Stable = self.stability {
-                return TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count);
+                trial_tx.send(TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count)).unwrap();
+                std::thread::sleep(std::time::Duration::from_millis(30));
             }
         }   
     }
