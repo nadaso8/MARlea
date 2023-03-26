@@ -115,23 +115,26 @@ impl MarleaEngine {
         let mut trials_created = 0;
         let max_trials = match self.num_trials{Some(number) => number, None => 100};
 
+        // create trials 
+        match self.out_timeline {
+            Some(_) => {
+                while trials_created < max_trials {
+                    let current_trial = trial::Trial::from(self.prime_network.clone(), self.max_semi_stable_steps, trials_created);
+                    computation_threads.spawn_ok(Self::timeline_trial_runtime(current_trial, results_channel.0.clone()));
+                    trials_created += 1;
+                }
+            }
+            None => {
+                while trials_created < max_trials {
+                    let current_trial = trial::Trial::from(self.prime_network.clone(), self.max_semi_stable_steps, trials_created);
+                    computation_threads.spawn_ok(Self::default_trial_runtime(current_trial, results_channel.0.clone()));                    
+                    trials_created += 1;
+                }
+            }
+        }
 
         // poll for trial results
         while trials_recieved < max_trials {
-
-            while trials_created < max_trials {
-                let current_trial = trial::Trial::from(self.prime_network.clone(), self.max_semi_stable_steps, trials_created);
-                match self.out_timeline {
-                    Some(_) => {
-                        computation_threads.spawn_ok(Self::timeline_trial_runtime(current_trial, results_channel.0.clone()));
-                    }
-                    None => {
-                        computation_threads.spawn_ok(Self::default_trial_runtime(current_trial, results_channel.0.clone()));                    
-                    }
-                }
-                trials_created += 1;
-            }
-
             if let Ok(result) = results_channel.1.try_recv() {
                 match result {
                     TrialResult::StableSolution(solution, steps) => {
