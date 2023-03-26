@@ -47,9 +47,6 @@
 // Import necessary modules
 use std::{path::{Path, PathBuf}, process::ExitStatus};
 use structopt::StructOpt;
-use crate::lib::marlea_engine;
-
-mod lib;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Marlea", about = "A command line program for simulating DNA based chemical reaction networks")]
@@ -134,7 +131,7 @@ fn main () {
 
         // If `simulate` query is provided, create new instance of MarleaEngine with parsed options, then run it
         Query::Simulate => {
-            let engine = marlea_engine::MarleaEngine::new(
+            let engine = marlea::MarleaEngine::new(
                 opts.input_file.to_string_lossy().into_owned(), 
                 opts.init_file, 
                 opts.output_file, 
