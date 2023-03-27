@@ -1,4 +1,4 @@
-use std::{collections::{HashSet, HashMap}};
+use std::collections::HashSet;
 use rand::Rng;
 use reaction::{Reaction, term::solution::{Species, Solution}};
 
