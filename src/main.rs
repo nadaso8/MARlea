@@ -47,10 +47,7 @@
 // Import necessary modules
 use std::path::PathBuf;
 use structopt::StructOpt;
-<<<<<<< HEAD
-=======
 use marlea_engine;
->>>>>>> add-raw-trial-data-feature
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Marlea", about = "A command line program for simulating DNA based chemical reaction networks")]
@@ -136,7 +133,7 @@ fn main () {
 
         // If `simulate` query is provided, create new instance of MarleaEngine with parsed options, then run it
         Query::Simulate => {
-            let engine = marlea::MarleaEngine::new(
+            let engine = marlea_engine::MarleaEngine::new(
                 opts.input_file.to_string_lossy().into_owned(), 
                 opts.init_file, 
                 opts.output_file, 

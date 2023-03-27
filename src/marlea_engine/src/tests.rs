@@ -1,10 +1,6 @@
 use std::collections::{HashSet, HashMap};
 use std::iter::FromIterator;
-<<<<<<<< HEAD:src/tests.rs
-use crate::{MarleaEngine, TrialResult, supported_file_type::SupportedFileType, reaction_network::reaction::{Reaction, term::{Term, species::Species}}};
-========
 use crate::marlea_engine::{MarleaEngine, TrialResult, supported_file_type::SupportedFileType, reaction_network::reaction::{Reaction, term::{Term, solution::Species}}};
->>>>>>>> add-raw-trial-data-feature:src/marlea_engine/src/tests.rs
 
 #[test]
 fn test_no_path() {

@@ -1,14 +1,6 @@
-<<<<<<<< HEAD:src/supported_file_type.rs
-
-use crate::reaction_network::reaction::{Reaction, term::{Term, species::Species}};
-use std::{fs::File};
-use csv::ReaderBuilder; 
-use std::io::Write;
-========
 use crate::trial::reaction_network::reaction::{Reaction, term::{Term, solution::Species}};
 use csv::ReaderBuilder;
 use std::sync::mpsc::Receiver;
->>>>>>>> add-raw-trial-data-feature:src/marlea_engine/src/supported_file_type.rs
 use std::path::Path;
 use std::collections::{HashMap, HashSet};
 use super::trial::reaction_network::reaction::term::solution::Solution;
@@ -194,8 +186,6 @@ impl SupportedFileType {
         }
     }
 }
-<<<<<<<< HEAD:src/supported_file_type.rs
-========
 
 enum WriterType {
     CSV{writer: csv::Writer<std::fs::File>, header_written: bool},
@@ -281,4 +271,3 @@ impl TimelineWriter {
         }
     }
 }
->>>>>>>> add-raw-trial-data-feature:src/marlea_engine/src/supported_file_type.rs

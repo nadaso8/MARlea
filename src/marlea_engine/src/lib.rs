@@ -30,19 +30,6 @@
 ///     - XML UNIMPLEMENTED! 
 ///     - JSON UNIMPLEMENTED!
 
-<<<<<<<< HEAD:src/lib.rs
-mod trial;
-mod supported_file_type; 
-
-use std::collections::{HashMap, HashSet};
-use std::sync::mpsc::{channel, Sender};
-use std::usize;
-
-use crate::supported_file_type::SupportedFileType; 
-use crate::trial::{*, reaction_network::{ReactionNetwork, reaction::{Reaction, term::species::Species}}}; 
-
-
-========
 use std::collections::{HashMap, HashSet};
 
 use std::sync::mpsc::{
@@ -72,7 +59,6 @@ use self::supported_file_type::TimelineWriter;
 mod trial;
 mod supported_file_type; 
 //mod tests;
->>>>>>>> add-raw-trial-data-feature:src/marlea_engine/src/lib.rs
 
 pub struct MarleaEngine {
     // set externally
