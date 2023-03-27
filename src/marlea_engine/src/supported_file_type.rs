@@ -11,6 +11,7 @@ use std::sync::mpsc::Receiver;
 >>>>>>>> add-raw-trial-data-feature:src/marlea_engine/src/supported_file_type.rs
 use std::path::Path;
 use std::collections::{HashMap, HashSet};
+
 use super::trial::reaction_network::reaction::term::solution::Solution;
 
 pub enum SupportedFileType {
@@ -193,20 +194,14 @@ impl SupportedFileType {
             Self::Unsuported(other_file_type) => panic!("tried to write unsuported file type {}", other_file_type),
         }
     }
-}
-<<<<<<<< HEAD:src/supported_file_type.rs
-========
 
-enum WriterType {
-    CSV{writer: csv::Writer<std::fs::File>, header_written: bool},
-}
+    pub fn write_timeline(&self, timelines: std::collections::hash_map::IntoIter<usize, Vec<Solution>>) {
+        match self {
+            Self::CSV(path) => {
+                let mut timeline_file = csv::WriterBuilder::new().from_path(path).unwrap();
 
-impl WriterType {
-    fn from(file: &SupportedFileType, id: usize) -> Self {
-        match file {
-            SupportedFileType::CSV(path) => {
-                let mut path_with_id = id.to_string();
-                path_with_id.push_str(&path);
+                for timeline in timelines {
+                    println!("found {} solution steps in timeline {}", timeline.1.len(), timeline.0);
 
                 return WriterType::CSV{
                     writer: csv::WriterBuilder::new()
@@ -240,6 +235,7 @@ impl TimelineWriter {
                     if !self.temp_sub_files.contains_key(&id) {
                         self.temp_sub_files.insert(id, WriterType::from(&self.timeline_file, id));
                     }
+                    timeline_file.write_record(&trial_header).unwrap();
 
                     // Write data with writer at given ID
                     self.temp_sub_files.entry(id)
@@ -277,8 +273,10 @@ impl TimelineWriter {
                     // combining files is unimplemented
                     return;
                 }
-            }
+            },
+            Self::JSON(_path) => todo!(), // implement JSON writing
+            Self::XML(_path) => todo!(), // implement XML writing
+            Self::Unsuported(other_file_type) => panic!("tried to write unsuported file type{}", other_file_type),
         }
     }
 }
->>>>>>>> add-raw-trial-data-feature:src/marlea_engine/src/supported_file_type.rs

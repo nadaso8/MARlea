@@ -64,9 +64,7 @@ use trial::{
             }
         }
     }
-};
-
-use self::supported_file_type::TimelineWriter; 
+}; 
 
 
 mod trial;
@@ -141,8 +139,13 @@ impl MarleaEngine {
             self.computation_threads.execute(move|| Self::engine_runtime_timer(time, timer_sender));
         }
 
+        // setup loop variables
+        let mut trials_recieved = 0;
+        let mut trials_created = 0;
+        let max_trials = match self.num_trials{Some(number) => number, None => 100};
+
         // create trials 
-        match &self.out_timeline {
+        match self.out_timeline {
             Some(_) => {
                 while trials_created < max_trials {
                     let mut current_trial = trial::Trial::from(self.prime_network.clone(), self.max_semi_stable_steps, trials_created);
@@ -186,7 +189,7 @@ impl MarleaEngine {
         
         }
 
-        return self.terminate(simulation_results);
+        return self.terminate(simulation_results, timelines);
 
     }
     
@@ -249,6 +252,13 @@ impl MarleaEngine {
             let output_file = SupportedFileType::from(path.clone());
             output_file.write_solution(Self::average_trials(simulation_results));
         }
+
+        //write timeline if one exists
+        if let Some(path) = &self.out_timeline {
+            let timeline_file = SupportedFileType::from(path.clone());
+            timeline_file.write_timeline(timeline_results.into_iter());
+        }
+
         return true;
     }
 
