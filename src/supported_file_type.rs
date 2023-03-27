@@ -1,16 +1,9 @@
-<<<<<<<< HEAD:src/supported_file_type.rs
 
-use crate::reaction_network::reaction::{Reaction, term::{Term, species::Species}};
-use std::{fs::File};
+use crate::marlea_engine::{trial::reaction_network::reaction::{Reaction, term::{Term, solution::Species}}};
 use csv::ReaderBuilder; 
-use std::io::Write;
-========
-use crate::trial::reaction_network::reaction::{Reaction, term::{Term, solution::Species}};
-use csv::ReaderBuilder;
-use std::sync::mpsc::Receiver;
->>>>>>>> add-raw-trial-data-feature:src/marlea_engine/src/supported_file_type.rs
 use std::path::Path;
 use std::collections::{HashMap, HashSet};
+
 use super::trial::reaction_network::reaction::term::solution::Solution;
 
 pub enum SupportedFileType {
@@ -193,92 +186,35 @@ impl SupportedFileType {
             Self::Unsuported(other_file_type) => panic!("tried to write unsuported file type {}", other_file_type),
         }
     }
-}
-<<<<<<<< HEAD:src/supported_file_type.rs
-========
 
-enum WriterType {
-    CSV{writer: csv::Writer<std::fs::File>, header_written: bool},
-}
+    pub fn write_timeline(&self, timelines: std::collections::hash_map::IntoIter<usize, Vec<Solution>>) {
+        match self {
+            Self::CSV(path) => {
+                let mut timeline_file = csv::WriterBuilder::new().from_path(path).unwrap();
 
-impl WriterType {
-    fn from(file: &SupportedFileType, id: usize) -> Self {
-        match file {
-            SupportedFileType::CSV(path) => {
-                let mut path_with_id = id.to_string();
-                path_with_id.push_str(&path);
+                for timeline in timelines {
+                    println!("found {} solution steps in timeline {}", timeline.1.len(), timeline.0);
 
-                return WriterType::CSV{
-                    writer: csv::WriterBuilder::new()
-                        .flexible(true)
-                        .from_path(path_with_id).unwrap(),
-                    header_written: false
-                }
-            }   
-            _ => unimplemented!()
-        }
-    }
-}
-pub struct TimelineWriter {
-    timeline_file: SupportedFileType,
-    temp_sub_files: HashMap<usize, WriterType>,
-    step_stream: Receiver<(Solution, usize)>,
-}
-
-impl TimelineWriter {
-    pub fn new(file: SupportedFileType, step_stream: Receiver<(Solution, usize)>) -> Self {
-        let temp_sub_files = HashMap::new();
-
-        return TimelineWriter {timeline_file: file, temp_sub_files, step_stream};
-    }
-    pub fn begin_listen(mut self) {
-        loop {
-            match self.step_stream.recv() {
-                Ok((solution, id)) => {
-
-                    // ensure that a wiriter has been generated for given ID
-                    if !self.temp_sub_files.contains_key(&id) {
-                        self.temp_sub_files.insert(id, WriterType::from(&self.timeline_file, id));
+                    let mut trial_header = Vec::new();
+                    let solution_width = timeline.1.get(0).unwrap().len();
+                    trial_header.push(format!("Timeline{}", timeline.0));
+                    for _index in 1..solution_width*2 {
+                        trial_header.push(format!("-"));
                     }
+                    timeline_file.write_record(&trial_header).unwrap();
 
-                    // Write data with writer at given ID
-                    self.temp_sub_files.entry(id)
-                    .and_modify(|sub_file|match sub_file {
-                        WriterType::CSV{writer,header_written} => {
-
-                            // only write names if there is no names header field in the sub file
-                            if !*header_written {
-                                let mut names = Vec::new();
-                                let mut counts = Vec::new();
-                                for (species_name, species_count) in solution.into_iter() {
-                                    names.push(species_name.to_string());
-                                    counts.push(species_count.to_string());
-                                }
-                                writer.write_record(names).unwrap();
-                                writer.write_record(counts).unwrap();
-                                writer.flush().unwrap();
-                                *header_written = true;
-                            } 
-
-                            // otherwise just ignore them completely and write the species as a new record
-                            else {
-                                let mut counts = Vec::new();
-                                for (_species_name, species_count) in solution.into_iter() {
-                                    counts.push(species_count.to_string());
-                                }
-                                writer.write_record(counts).unwrap();
-                                writer.flush().unwrap();
-                            }
+                    for solution in timeline.1 {
+                        let mut record = Vec::new();
+                        for species in solution.into_iter() {
+                            record.append(&mut vec![species.0.to_string(), species.1.to_string()]);
                         }
-                    });
+                        timeline_file.write_record(&record).unwrap();
+                    }
                 }
-                Err(msg) => {
-                    println!("Timeline Writer Recieved error #[{}]\n shutting donwn", msg);
-                    // combining files is unimplemented
-                    return;
-                }
-            }
+            },
+            Self::JSON(_path) => todo!(), // implement JSON writing
+            Self::XML(_path) => todo!(), // implement XML writing
+            Self::Unsuported(other_file_type) => panic!("tried to write unsuported file type{}", other_file_type),
         }
     }
 }
->>>>>>>> add-raw-trial-data-feature:src/marlea_engine/src/supported_file_type.rs

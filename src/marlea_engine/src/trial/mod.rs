@@ -53,7 +53,7 @@ impl <'trial_runtime> Trial {
             trial_tx.send(TrialResult::TimelineEntry(self.reaction_network.get_solution().clone(), self.id)).unwrap();
             if let Stability::Stable = self.stability {
                 trial_tx.send(TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count)).unwrap();
-                return;
+                std::thread::sleep(std::time::Duration::from_millis(30));
             }
         }   
     }
@@ -65,7 +65,7 @@ impl <'trial_runtime> Trial {
             self.step();
             if let Stability::Stable = self.stability {
                 trial_tx.send(TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count)).unwrap();
-                return;
+                std::thread::sleep(std::time::Duration::from_millis(30));
             }
         }   
     }
