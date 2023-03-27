@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 use std::collections::{HashSet, HashMap};
 use std::iter::FromIterator;
+<<<<<<<< HEAD:src/tests.rs
 use crate::{MarleaEngine, TrialResult, supported_file_type::SupportedFileType, reaction_network::reaction::{Reaction, term::{Term, species::Species}}};
+========
+use crate::marlea_engine::{MarleaEngine, TrialResult, supported_file_type::SupportedFileType, reaction_network::reaction::{Reaction, term::{Term, solution::Species}}};
+>>>>>>>> add-raw-trial-data-feature:src/marlea_engine/src/tests.rs
 
 #[test]
 fn test_no_path() {
@@ -151,4 +156,16 @@ fn test_parse_reactions_csv() {
 
     // Compare actual and expected output
     assert_eq!(result, expected);
+=======
+#[cfg(test)]
+mod test {
+    use super::super::*;
+    use std::str::FromStr;
+    #[test]
+    fn test_query_from_string() {
+        assert_eq!(Query::from_str("simulate").unwrap(), Query::Simulate);
+        assert_eq!(Query::from_str("help").unwrap(), Query::Help);
+        assert!(Query::from_str("invalid").is_err());
+    }
+>>>>>>> add-raw-trial-data-feature
 }

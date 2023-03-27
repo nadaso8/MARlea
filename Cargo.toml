@@ -1,13 +1,25 @@
 [package]
+<<<<<<< HEAD
+<<<<<<<< HEAD:Cargo.toml
 name = "marlea"
+========
+name = "marlea_engine"
+>>>>>>>> add-raw-trial-data-feature:src/marlea_engine/Cargo.toml
+=======
+name = "marlea"
+>>>>>>> add-raw-trial-data-feature
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+<<<<<<< HEAD
 chrono = "0.4.24"
 csv = "1.2.1"
-futures = { version = "0.3.27", features = ["thread-pool"] }
 rand = "0.8.5"
+threadpool = "1.8.1"
+=======
+marlea_engine = { version = "0.1.0", path = "src/marlea_engine" }
 structopt = "0.3"
+>>>>>>> add-raw-trial-data-feature

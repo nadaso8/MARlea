@@ -45,8 +45,12 @@
 
 
 // Import necessary modules
-use std::{path::{Path, PathBuf}, process::ExitStatus};
+use std::path::PathBuf;
 use structopt::StructOpt;
+<<<<<<< HEAD
+=======
+use marlea_engine;
+>>>>>>> add-raw-trial-data-feature
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Marlea", about = "A command line program for simulating DNA based chemical reaction networks")]
@@ -57,7 +61,7 @@ enum Query {
     #[structopt(name = "settings")]
     //Settings,
     #[structopt(name = "validate")]
-    //Validate,
+    Validate,
     #[structopt(name = "simulate")]
     Simulate,
     #[structopt(name = "help")]
@@ -68,6 +72,7 @@ enum Query {
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "Marlea",
+    about = "A stochastic CRN simulator"
 )]
 struct MarleaOpts {
     query: Query,
@@ -77,6 +82,8 @@ struct MarleaOpts {
     init_file: Option<String>,
     #[structopt(short="-o", long="--out")]
     output_file: Option<String>,
+    #[structopt(long="--timeline")]
+    output_timeline: Option<String>,
     #[structopt(short="-t", long="--trials")]
     num_trials: Option<usize>,
     #[structopt(short="-r", long="--runtime")]
@@ -93,7 +100,7 @@ impl std::str::FromStr for Query {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.trim().to_lowercase().as_ref() {
             //"settings" => Ok(Query::Settings),
-            //"validate" => Ok(Query::Validate),
+            "validate" => Ok(Query::Validate),
             "simulate" => Ok(Query::Simulate),
             "help" => Ok(Query::Help),
             _ => Err(format!("Invalid query '{}'", s)),
@@ -104,8 +111,6 @@ impl std::str::FromStr for Query {
 
 fn main () {
     let opts = MarleaOpts::from_args();
-
-    let input_path_string = opts.input_file.to_string_lossy().into_owned();
 
     // Match query and perform appropriate action
     match opts.query {
@@ -135,6 +140,7 @@ fn main () {
                 opts.input_file.to_string_lossy().into_owned(), 
                 opts.init_file, 
                 opts.output_file, 
+                opts.output_timeline,
                 opts.num_trials, 
                 opts.max_runtime,
                 opts.max_semi_stable_steps,
