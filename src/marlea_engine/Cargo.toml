@@ -1,9 +1,5 @@
 [package]
-<<<<<<<< HEAD:Cargo.toml
-name = "marlea"
-========
 name = "marlea_engine"
->>>>>>>> add-raw-trial-data-feature:src/marlea_engine/Cargo.toml
 version = "0.1.0"
 edition = "2021"
 

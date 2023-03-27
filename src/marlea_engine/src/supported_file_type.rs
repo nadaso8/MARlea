@@ -1,14 +1,6 @@
-<<<<<<<< HEAD:src/supported_file_type.rs
-
-use crate::reaction_network::reaction::{Reaction, term::{Term, species::Species}};
-use std::{fs::File};
-use csv::ReaderBuilder; 
-use std::io::Write;
-========
 use crate::trial::reaction_network::reaction::{Reaction, term::{Term, solution::Species}};
 use csv::ReaderBuilder;
 use std::sync::mpsc::Receiver;
->>>>>>>> add-raw-trial-data-feature:src/marlea_engine/src/supported_file_type.rs
 use std::path::Path;
 use std::collections::{HashMap, HashSet};
 
@@ -194,6 +186,7 @@ impl SupportedFileType {
             Self::Unsuported(other_file_type) => panic!("tried to write unsuported file type {}", other_file_type),
         }
     }
+}
 
     pub fn write_timeline(&self, timelines: std::collections::hash_map::IntoIter<usize, Vec<Solution>>) {
         match self {
