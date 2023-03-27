@@ -45,12 +45,9 @@
 
 
 // Import necessary modules
-use std::{path::{Path, PathBuf}, process::ExitStatus};
-use futures::stream::TryBuffered;
+use std::path::PathBuf;
 use structopt::StructOpt;
-use crate::lib::marlea_engine;
-
-mod lib;
+use marlea_engine;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Marlea", about = "A command line program for simulating DNA based chemical reaction networks")]
