@@ -19,9 +19,10 @@ Usage: Marlea `<QUERY>` `<INPUT_FILE>` `[Options]`
 ### Options:
  -  -i, --init-file `<FILE_NAME>`      Specifies a file to read starting conditions from. By default if no file is specified the default is to assign species a count of 0, this is also the default for species not listed within the specified file. 
  -  -o, --output-file `<FILE_NAME>`    Specifies a file where the program should write its results. If omitted program will only print to the command line. By default this will simply use console output. 
+ - --timeline `<FILE_NAME>`            **Advanced** Sets the program to write a full history of the solution at each step for all trials... This can easily be gigabytes of data.
  -  -t, --num-trials `<NUM_TRIALS>`    Specifies the number of times the simulation should simulate the chemical reaction network. By default this is 100 trials
- -  -r, --max-runtime `<MAX_RUNTIME>` Specifies the maximum time the simulation is allowed to run for in seconds. By default runtime is unbounded
- -  -s, **Advanced** sets how tollerant each simulation will be of semi stable states. By defualt each trial will terminate after being semi stable for 100 steps. 
+ -  -r, --max-runtime `<MAX_RUNTIME>`  Specifies the maximum time the simulation is allowed to run for in seconds. By default runtime is unbounded
+ -  -s,                                **Advanced** sets how tollerant each simulation will be of semi stable states. By defualt each trial will terminate after being semi stable for 100 steps. 
  
  ## input syntax 
  ### reactants/products
