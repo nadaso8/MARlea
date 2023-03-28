@@ -262,8 +262,8 @@ impl TimelineWriter {
                         }
                     });
                 }
-                Err(msg) => {
-                    println!("Timeline Writer Recieved error #[{}]\n shutting donwn", msg);
+                Err(_msg) => {
+                    println!("Stream to Timeline Writer dropped\nShutting down...");
                     // combining files is unimplemented
                     return;
                 }
