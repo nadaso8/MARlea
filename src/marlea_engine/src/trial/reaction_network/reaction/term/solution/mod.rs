@@ -21,12 +21,6 @@ pub struct Solution {
     pub species_counts: HashMap<Species, Species>,
 }
 
-impl Solution {
-    pub fn len(&self) -> usize {
-       return self.species_counts.len();
-    }
-}
-
 impl std::hash::Hash for Solution {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         for entry in self.species_counts.iter() {
