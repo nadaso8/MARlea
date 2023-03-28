@@ -110,11 +110,6 @@ impl MarleaEngine {
         // Hashmap which will contain timeline if option is ennabled
         let mut timelines: HashMap<usize, Vec<Solution>> = HashMap::new();
 
-        // setup threadpool 
-        let computation_threads = futures::executor::ThreadPool::new().unwrap();
-        let results_channel = channel();
-
-
         // start runtime timer
         let (timer_sender, timer_reciever) = sync_channel(0);
         if let Some(time) = self.max_runtime {
