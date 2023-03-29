@@ -50,10 +50,12 @@ impl <'trial_runtime> Trial {
         loop{
             step_count += 1; 
             self.step();
-            trial_tx.send(TrialResult::TimelineEntry(self.reaction_network.get_solution().clone(), self.id)).unwrap();
+            trial_tx.send(TrialResult::TimelineEntry(self.reaction_network.get_solution().clone(), self.id))
+                .expect("Reciever thread for trial {} dropped\nShutting down...");
             if let Stability::Stable = self.stability {
-                trial_tx.send(TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count)).unwrap();
-                std::thread::sleep(std::time::Duration::from_millis(30));
+                trial_tx.send(TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count))
+                .expect("Reciever thread for trial {} dropped\nShutting down...");
+                return;
             }
         }   
     }
@@ -64,8 +66,9 @@ impl <'trial_runtime> Trial {
             step_count += 1; 
             self.step();
             if let Stability::Stable = self.stability {
-                trial_tx.send(TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count)).unwrap();
-                std::thread::sleep(std::time::Duration::from_millis(30));
+                trial_tx.send(TrialResult::StableSolution(self.reaction_network.get_solution().clone(), step_count))
+                .expect("Reciever thread for trial {} dropped\nShutting down...");
+                return;
             }
         }   
     }

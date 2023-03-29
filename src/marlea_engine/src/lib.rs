@@ -118,7 +118,7 @@ impl MarleaEngine {
         let (timeline_writer_sender, timeline_writer_reciever) = sync_channel(0);
         if let Some(path) = &self.out_timeline {
             let timeline_writer = TimelineWriter::new(SupportedFileType::from(path.clone()), timeline_writer_reciever);
-            self.computation_threads.execute(|| timeline_writer.begin_listen());
+            self.computation_threads.execute(move|| timeline_writer.begin_listen());
         }
   
         // start runtime timer
@@ -165,13 +165,11 @@ impl MarleaEngine {
             
             if let Ok(_) = timer_reciever.try_recv() {
                 println!("forced termination because max time was reached\n\nWARNING: returned results may not be accurate and should be used for debugging purposes only");
-                drop(timeline_writer_sender);
-                drop(&self.computation_threads_reciever);
                 break;
             }
-        
         }
 
+        drop(timeline_writer_sender);
         return self.terminate(simulation_results);
 
     }
@@ -234,7 +232,12 @@ impl MarleaEngine {
         if let Some(path) = &self.out_path {
             let output_file = SupportedFileType::from(path.clone());
             output_file.write_solution(Self::average_trials(simulation_results));
+        } else {
+            for entry in Self::average_trials(simulation_results) {
+                println!("{},{}", entry.0 , entry.1);
+            }
         }
+
         return true;
     }
 
