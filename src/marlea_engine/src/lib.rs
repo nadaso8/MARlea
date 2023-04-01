@@ -89,7 +89,9 @@ impl MarleaEngine {
         let reactions = SupportedFileType::from(input_path).parse_reactions();
         let solution = Self::solution_from(init_path, &reactions);
         let prime_network = ReactionNetwork::new(reactions, solution);
-        let computation_threads = threadpool::Builder::new().build();
+        let computation_threads = threadpool::Builder::new()
+            .thread_name("compute_thread".into())
+            .build();
         let computation_threads_channels = sync_channel(0);
 
         Self{
