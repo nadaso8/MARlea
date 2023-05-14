@@ -5,6 +5,7 @@ The original project is available here: https://cctbio.ece.umn.edu/aleae/
 
 This is very much expirimental and just written for fun. Don't expect this to be completely accurate. We aren't biologists or chemists.
 
+I will not provide support for this project... if it's broken for you my answer is simply that you should download the source code and fix it yourself. It's open for a reason. Good luck and happy simulating!!!
 ## about
 A command line program for simulating DNA based chemical reaction networks.
             
