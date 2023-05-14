@@ -14,7 +14,7 @@ then prints results either to a specified output file or the command line.
             
 Usage: Marlea `<QUERY>` `<INPUT_FILE>` `[Options]`
 ### Arguments:
- - `<QUERY>` - Specify the operation/query to perform. Possible values: \"settings\", \"validate\", \"simulate\", \"help\".
+ - `<QUERY>` - Specify the operation/query to perform. Possible values: \"simulate\", \"help\".
  - `<INPUT_FILE>` - Input file path to use.
             
 ### Options:
