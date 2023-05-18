@@ -8,7 +8,6 @@ use super::trial::reaction_network::reaction::term::solution::Solution;
 pub enum SupportedFileType {
 CSV(String),
 JSON(String),
-SQL(String),
 XML(String),
 Unsuported(String),
 }
@@ -99,7 +98,6 @@ impl SupportedFileType {
                 } // end of inner match { OK(CSVReader) vs. Error(String) }  
             }, // End of handling CSV files
             Self::JSON(_path) => todo!(),
-            Self::SQL(_path) => todo!(),
             Self::XML(_path) => todo!(), 
             Self::Unsuported(file_type) => panic!("Unsupported file type: found {}, expects CSV", file_type), 
             
@@ -167,7 +165,6 @@ impl SupportedFileType {
             }
             Self::XML(_path) => unimplemented!(),
             Self::JSON(_path) => unimplemented!(),
-            Self::SQL(_path) => todo!(),
             Self::Unsuported(file_type) => panic!("Unsupported file type: found {}, expects CSV", file_type), 
         }
     }
@@ -184,7 +181,6 @@ impl SupportedFileType {
                 }
             },
             Self::JSON(_path) => todo!(), // implement JSON writing
-            Self::SQL(_path) => todo!(),
             Self::XML(_path) => todo!(), // implement XML writing
             Self::Unsuported(other_file_type) => panic!("tried to write unsuported file type {}", other_file_type),
         }
