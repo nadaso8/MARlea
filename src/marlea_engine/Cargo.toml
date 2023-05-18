@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "This is the standalone engine for marlea available to be imported as an object in other projects. It preforms stochastic simulation and parsing on CRNs from CSV files (Other formats TBA). "
 license = "MIT"
-license-file = "src\marlea_engine\LICENSE"
+license-file = "LICENSE.txt"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
