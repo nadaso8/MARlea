@@ -1,10 +1,12 @@
 [package]
-name = "marlea"
+name = "MARlea_simulator"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-marlea_engine = "0.1.1"
+MARlea_parser = { git = "https://github.com/nadaso8/MARlea_parser.git", version = "0.1.0" }
+egui = "0.25.0"
+marlea_engine = { git = "https://github.com/nadaso8/MARlea_engine.git", branch = "experimental", version = "0.1.1" }
 structopt = "0.3"

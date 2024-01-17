@@ -1,154 +1,95 @@
 /// Author: Marceline Sorensen 
 /// Email: nadaso8th@gmail.com
-/// Date: 09/03/2023
+/// Date: 15/1/2024
 /// 
 /// #Description
-/// This is a command line program used in the simulation of DNA based chemical Reaction Networks. 
-/// It takes some CSV as input preforms stochastic simulation on the provided system 
-/// then prints results either to a specified output file or the command line. 
+/// This is the main module for marlea. It manages initializing the GUI as well as command line/headless opperation. 
 /// 
 /// #Usage 
-/// From the command line this function takes arguments in the following format
-/// <`Query`, `Input File Path`, `Options`>
+/// MARlea_simulator.exe <Query> <Options>
 /// 
 /// ## Queries 
-/// - `settings` UNIMPLEMENTED!
-///     Prints current settings file and defaults to console
-/// 
-/// - `validate` UNIMPLEMENTED!
-///     Validates the syntax of a provided input file 
-/// 
-/// - `simulate`
-///     Simulates a chemical reaction network 
-/// 
-/// - `help`
-///     Prints Usage to command line
+/// None : starts the application with default GUI allowing user to graphically select a rxn network 
+/// "Simulate" <input_file> : starts the application and gui with
+///  only runtime feedback plot. Then attempts to immediately 
+///  parse and simulate the rxn network in input file.  
 /// 
 /// ## Options 
-/// 
-/// - `-Init <Initial Condition File Path>`
-///     Specifies a file to read starting conditions from.
-///     If ommited it's assumed that starting conditions are provided in a marked section of the Input file
-///     If not provided in either location it's assumed that all species start at count 0
-/// 
-/// - `-Out <Output File Path>`
-///     Specifies a file where the program should write it's results
-///     If ommited program will only print to command line
-///     
-/// 
-/// - `-Trials <Numbe Of Trials To Simulate>`
-///     Specifies the number of times the simulation should simulate the chemical reaction network. 
-/// 
-/// - `-Time <Maximum Runtime>`
-///     Specifies the maximum time the simulation is allowed to run for. 
+/// -no_gui : runs the application without starting a gui of any sort dissabling any runtime feedback
+/// -o --output <file_path> : saves output to a new file 
+/// -r --runtime <seconds> : specifies a time limit after which the application will force quit without finishing the simulation
+/// -sensitivity <steps>: specifies the number of steps for which a simulation trial can exist in a semi stable state
+/// -t --trials <count> : specifies the number of trials to simulate before taking the final average 
+/// -timeline : saves timeline to a new file if no output was specified it will save to the input_file directory 
+/// -cores : set the number of workers to allow the compute threadpool
 /// 
 
 
 // Import necessary modules
-use std::path::PathBuf;
 use structopt::StructOpt;
-use marlea_engine;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "Marlea", about = "A command line program for simulating DNA based chemical reaction networks")]
-
-// Define Query enum
-#[derive(PartialEq)]
-enum Query {
-    #[structopt(name = "settings")]
-    //Settings,
-    #[structopt(name = "validate")]
-    Validate,
-    #[structopt(name = "simulate")]
-    Simulate,
-    #[structopt(name = "help")]
-    Help,
+#[structopt(name = "MARlea")]
+struct MARlea {
+    /// An optional command to allow for starting simulations via the command line without input from the gui.
+    /// Additional functionality such as transpilation into a .csv rxn set TBA when I get around to it.  
+    #[structopt(subcommand)]
+    query: Option<MarleaSubcmd>,
 }
-
 
 #[derive(Debug, StructOpt)]
-#[structopt(
-    name = "Marlea",
-    about = "A stochastic CRN simulator"
-)]
-struct MarleaOpts {
-    query: Query,
-    #[structopt(parse(from_os_str))]
-    input_file: PathBuf,
-    #[structopt(short="-i", long="--init")]
-    init_file: Option<String>,
-    #[structopt(short="-o", long="--out")]
-    output_file: Option<String>,
-    #[structopt(long="--timeline")]
-    output_timeline: Option<String>,
-    #[structopt(short="-t", long="--trials")]
-    num_trials: Option<usize>,
-    #[structopt(short="-r", long="--runtime")]
-    max_runtime: Option<u64>,
-    #[structopt(short="-s", long="--stability_tolerance")]
-    max_semi_stable_steps: Option<i32>,
+enum MarleaSubcmd {
+    
+    simulate {
+        /// specify rxn network file to simulate
+        /// currently supported extensions
+        ///  - .csv
+        #[structopt(parse(from_os_str))]
+        input: std::path::PathBuf,
+
+        /// start the application in headless mode
+        #[structopt(long)]
+        no_gui: bool,
+
+        /// specify an output file path
+        #[structopt(short, long, parse(from_os_str))]
+        output: Option<std::path::PathBuf>,
+
+        /// specify a maximum runtime in seconds
+        /// EX: -r 32 will quit the application after 32 seconds have elapsed
+        #[structopt(short, long)] 
+        runtime: Option<u32>,
+
+        /// ADVANCED! specify maximum count of semi stable a trial may simulate steps before stable state is assumed.
+        /// higher values will make the simulation less likely to assume a stable state
+        #[structopt(long)]
+        sensitivity: Option<u32>,
+
+        /// specify the number of trials to simulate before calculating final average
+        #[structopt(short, long)]
+        trials: Option<u32>,
+
+        /// specify timeline output file path
+        #[structopt(long, parse(from_os_str))]
+        timeline: Option<std::path::PathBuf>,
+
+        /// specify maximum the number of cores able to be used by marlea_engine
+        /// defaults to using all cores availible
+        #[structopt(long)]
+        cores: Option<u8>,
+    },
 }
 
+fn main() {
+    let opts = MARlea::from_args();
 
-
-impl std::str::FromStr for Query {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.trim().to_lowercase().as_ref() {
-            //"settings" => Ok(Query::Settings),
-            "validate" => Ok(Query::Validate),
-            "simulate" => Ok(Query::Simulate),
-            "help" => Ok(Query::Help),
-            _ => Err(format!("Invalid query '{}'", s)),
-        }
-    }
-}
-
-
-fn main () {
-    let opts = MarleaOpts::from_args();
-
-    // Match query and perform appropriate action
     match opts.query {
-        // Just print Usage information if `help` query is provided
-        Query::Help => println!("{}", MarleaOpts::clap().about(&*format!(
-            "A command line program for simulating DNA based chemical reaction networks.
-            
-            This program takes some CSV (other formats remain unimplemented) as input and performs stochastic simulation on the provided system,
-            then prints results either to a specified output file or the command line.
-            
-            Usage: marlea <QUERY> <INPUT_FILE> [Options]
-            Arguments:
-                <QUERY>                          Specify the operation/query to perform. Possible values: \"settings\", \"validate\", \"simulate\", \"help\".
-                <INPUT_FILE>                     Input file path to use.
-            
-            Options:
-                -i, --init <FILE_NAME>      Specifies a file to read starting conditions from. If omitted it is assumed that starting conditions are provided in a marked section of the input file; if not provided in either location it is assumed that all species start at count 0.
-                -o, --out <FILE_NAME>    Specifies a file where the program should write its results. If omitted program will only print to the command line.
-                -t, --trials <NUM_TRIALS>    Specifies the number of times the simulation should simulate the chemical reaction network.
-                -r, --runtime <MAX_RUNTIME> Specifies the maximum time the simulation is allowed to run for in seconds.
-                -s, --stability_tolerance <SEMI_STABLE_TRIALS> **Advanced** Specifies the number of successive semi stable trials to run before terminated"
-        ))),
+        Some(simulate) => {
 
-        // If `simulate` query is provided, create new instance of MarleaEngine with parsed options, then run it
-        Query::Simulate => {
-            let engine = marlea_engine::MarleaEngine::new(
-                opts.input_file.to_string_lossy().into_owned(), 
-                opts.init_file, 
-                opts.output_file, 
-                opts.output_timeline,
-                opts.num_trials, 
-                opts.max_runtime,
-                opts.max_semi_stable_steps,
-            );
-            // Run MarleaEngine
-            engine.run();
         },
-
-        // Print error message if unsupported query is requested
-        _ => println!("Error: Unsupported query requested.")
-    }
-
-    return; 
+        None => {
+            
+        },
+    };
+    
 }
