@@ -26,11 +26,13 @@
 
 
 // Import necessary modules
+mod marlea_save;
+mod marlea_gui;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "MARlea")]
-struct MARlea {
+#[structopt(name = "MarleaOpts")]
+struct MarleaOpts {
     /// An optional command to allow for starting simulations via the command line without input from the gui.
     /// Additional functionality such as transpilation into a .csv rxn set TBA when I get around to it.  
     #[structopt(subcommand)]
@@ -73,10 +75,6 @@ enum MarleaSubcmd {
         #[structopt(long, parse(from_os_str))]
         timeline: Option<std::path::PathBuf>,
 
-        /// specify maximum the number of cores able to be used by marlea_engine
-        /// defaults to using all cores availible
-        #[structopt(long)]
-        cores: Option<u8>,
     },
 }
 

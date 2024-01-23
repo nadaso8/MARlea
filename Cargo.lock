@@ -3,6 +3,16 @@
 version = 3
 
 [[package]]
+name = "MARlea_CRN_Simulator"
+version = "0.1.0"
+dependencies = [
+ "MARlea_parser",
+ "egui",
+ "marlea_engine 0.1.1 (git+https://github.com/nadaso8/MARlea_engine.git?branch=experimental)",
+ "structopt",
+]
+
+[[package]]
 name = "MARlea_parser"
 version = "0.1.0"
 source = "git+https://github.com/nadaso8/MARlea_parser.git#badaca66105724535d91695f767715be8f0e7e4d"
@@ -10,16 +20,6 @@ dependencies = [
  "marlea_engine 0.1.1 (git+https://github.com/nadaso8/MARlea_engine.git?branch=Experimental)",
  "pest",
  "pest_derive",
-]
-
-[[package]]
-name = "MARlea_simulator"
-version = "0.1.0"
-dependencies = [
- "MARlea_parser",
- "egui",
- "marlea_engine 0.1.1 (git+https://github.com/nadaso8/MARlea_engine.git?branch=experimental)",
- "structopt",
 ]
 
 [[package]]

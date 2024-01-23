@@ -6,3 +6,6 @@
 /// This is the graphical user interface module for marela.
 /// 
 
+pub struct gui_instance {
+    
+}

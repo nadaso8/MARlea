@@ -1,5 +1,5 @@
 [package]
-name = "MARlea_simulator"
+name = "MARlea_CRN_Simulator"
 version = "0.1.0"
 edition = "2021"
 
