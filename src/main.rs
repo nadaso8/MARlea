@@ -92,7 +92,7 @@ enum MarleaSubcmd {
 enum MarleaError {
     Unknown(&'static str),
     InvalidOptions(&'static str),
-    ParserError(MarleaParserError),
+    ParserError(),
     SimulationError(MarleaEngineError)
 }
 
@@ -114,20 +114,30 @@ fn main() -> Result<(), MarleaError> {
                     // parse network from input path or propagate error
                     let rxn_network = match MarleaParser::parse(&input) {
                         Ok(result) => result,
-                        Err(msg) => return Result::Err(MarleaError::ParserError(msg)),
+                        Err(err) => {
+                            let msg = match err.clone() {
+                                MarleaParserError::InvalidFile(msg) => msg,
+                                MarleaParserError::ParseFailed(msg) => msg,
+                                MarleaParserError::UnsupportedExt(msg) => msg
+                            };
+
+                            println!("{}",msg);
+
+                            return Result::Err(MarleaError::ParserError());
+                        },
                     };
 
                     // check for unimplemented options
                     if no_gui {
-                        unimplemented!("no gui is imlemented on current build")
+                        todo!("no gui is imlemented on current build")
                     }
 
                     if let Some(output) = output {
-                        unimplemented!("no file writer is implemented on current build")
+                        todo!("no file writer is implemented on current build")
                     }
 
                     if let Some(path) = timeline {
-                        unimplemented!("no file writer is implemented on current build")
+                        todo!("no file writer is implemented on current build")
                     }
 
                     // build backend instance from opts
