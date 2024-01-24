@@ -28,9 +28,17 @@
 // Import necessary modules
 mod marlea_save;
 mod marlea_gui;
-use std::process::exit;
 
-use marlea_engine::MarleaError;
+use marlea_engine::{
+    MarleaEngine,
+    MarleaReturn,
+    MarleaResponse,
+    MarleaEngineError,
+};
+use MARlea_parser::{
+    MarleaParser,
+    MarleaParserError,
+};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -81,10 +89,10 @@ enum MarleaSubcmd {
     },
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 enum MarleaError {
-    Unknown(&str),
-    InvalidOptions(&str),
+    Unknown(&'static str),
+    InvalidOptions(&'static str),
     ParserError(MarleaParserError),
     SimulationError(MarleaEngineError)
 }
@@ -97,13 +105,57 @@ fn main() -> Result<(), MarleaError> {
             match query {
                 MarleaSubcmd::simulate { 
                     input, 
-                    no_gui, output, 
+                    no_gui,
+                    output, 
                     runtime, 
                     sensitivity, 
                     trials, 
                     timeline 
                 } => {
+                    // parse network from input path or propagate error
+                    let rxn_network = match MarleaParser::parse(&input) {
+                        Ok(result) => result,
+                        Err(msg) => return Result::Err(MarleaError::ParserError(msg)),
+                    };
 
+                    // check for unimplemented options
+                    if no_gui {
+                        unimplemented!("no gui is present on current release")
+                    }
+
+                    if let Some(output) = output {
+                        unimplemented!("no file writer is implemented on current build")
+                    }
+
+                    if let Some(path) = timeline {
+                        unimplemented!("no file writer is implemented on current build")
+                    }
+
+                    // build backend instance
+                    let marlea_engine_builder = marlea_engine::Builder::new(rxn_network);
+
+                    if let Some(time) = runtime {
+                        marlea_engine_builder.runtime(time);
+                    }
+
+                    if let Some(steps) = sensitivity {
+                        marlea_engine_builder.tolerance(steps);
+                    }
+
+                    if let Some(count) = trials {
+                        marlea_engine_builder.trials(count);
+                    }
+
+                    let (backend, backend_reciever)= marlea_engine_builder.no_response().build();
+
+                    let result = match backend.run() {
+                        Ok(result) => result,
+                        Err(msg) => return Result::Err(MarleaError::SimulationError(msg))
+                    };
+
+                    for (name, avg) in result.0 {
+                        println!("{} - {}", name, avg);
+                    }
 
                     return Result::Ok(());
                 },
