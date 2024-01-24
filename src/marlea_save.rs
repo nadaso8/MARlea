@@ -1,6 +1,13 @@
 use std::sync::mpsc::Receiver;
 
-use marlea_engine::{trial::reaction_network::solution::{Count, Name, Solution}, MarleaResult};
+use marlea_engine::{
+    trial::reaction_network::solution::{
+        Count, 
+        Name, 
+        Solution
+    }, 
+    MarleaResult,
+};
 
 pub enum MarleaSaveObjError {
     InitFailed(),

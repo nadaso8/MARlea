@@ -28,6 +28,9 @@
 // Import necessary modules
 mod marlea_save;
 mod marlea_gui;
+use std::process::exit;
+
+use marlea_engine::MarleaError;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -78,15 +81,40 @@ enum MarleaSubcmd {
     },
 }
 
-fn main() {
-    let opts = MARlea::from_args();
+#[derive(Debug, Clone, Copy)]
+enum MarleaError {
+    Unknown(&str),
+    InvalidOptions(&str),
+    ParserError(MarleaParserError),
+    SimulationError(MarleaEngineError)
+}
+
+fn main() -> Result<(), MarleaError> {
+    let opts = MarleaOpts::from_args();
 
     match opts.query {
-        Some(simulate) => {
+        Some(query) => {
+            match query {
+                MarleaSubcmd::simulate { 
+                    input, 
+                    no_gui, output, 
+                    runtime, 
+                    sensitivity, 
+                    trials, 
+                    timeline 
+                } => {
 
+
+                    return Result::Ok(());
+                },
+                _ => {
+                    println!("invalid query");
+                    return Result::Err(MarleaError::InvalidOptions(&format!("invalid query")));
+                }, 
+            }
         },
         None => {
-            
+            todo!("implement gui behavior")
         },
     };
     
