@@ -31,8 +31,7 @@ mod marlea_gui;
 
 use marlea_engine::{
     MarleaEngine,
-    MarleaReturn,
-    MarleaResponse,
+    MarleaResult,
     MarleaEngineError,
 };
 use MARlea_parser::{
@@ -71,16 +70,16 @@ enum MarleaSubcmd {
         /// specify a maximum runtime in seconds
         /// EX: -r 32 will quit the application after 32 seconds have elapsed
         #[structopt(short, long)] 
-        runtime: Option<u32>,
+        runtime: Option<u64>,
 
         /// ADVANCED! specify maximum count of semi stable a trial may simulate steps before stable state is assumed.
         /// higher values will make the simulation less likely to assume a stable state
         #[structopt(long)]
-        sensitivity: Option<u32>,
+        sensitivity: Option<usize>,
 
         /// specify the number of trials to simulate before calculating final average
         #[structopt(short, long)]
-        trials: Option<u32>,
+        trials: Option<usize>,
 
         /// specify timeline output file path
         #[structopt(long, parse(from_os_str))]
@@ -120,7 +119,7 @@ fn main() -> Result<(), MarleaError> {
 
                     // check for unimplemented options
                     if no_gui {
-                        unimplemented!("no gui is present on current release")
+                        unimplemented!("no gui is imlemented on current build")
                     }
 
                     if let Some(output) = output {
@@ -131,37 +130,41 @@ fn main() -> Result<(), MarleaError> {
                         unimplemented!("no file writer is implemented on current build")
                     }
 
-                    // build backend instance
-                    let marlea_engine_builder = marlea_engine::Builder::new(rxn_network);
+                    // build backend instance from opts
+                    let mut marlea_engine_builder = marlea_engine::Builder::new(rxn_network);
 
                     if let Some(time) = runtime {
-                        marlea_engine_builder.runtime(time);
+                        marlea_engine_builder = marlea_engine_builder.runtime(time);
                     }
 
                     if let Some(steps) = sensitivity {
-                        marlea_engine_builder.tolerance(steps);
+                        marlea_engine_builder = marlea_engine_builder.tolerance(steps);
                     }
 
                     if let Some(count) = trials {
-                        marlea_engine_builder.trials(count);
+                        marlea_engine_builder = marlea_engine_builder.trials(count);
                     }
 
                     let (backend, backend_reciever)= marlea_engine_builder.no_response().build();
+                    drop(backend_reciever);//drop unused receiver
 
                     let result = match backend.run() {
-                        Ok(result) => result,
+                        Ok(result) => match result {
+                            MarleaResult::Final(val) => val,
+                            MarleaResult::Intermediary(_) => return Result::Err(MarleaError::SimulationError(MarleaEngineError::Unknown("huh?".to_string())))
+                        },
                         Err(msg) => return Result::Err(MarleaError::SimulationError(msg))
                     };
 
-                    for (name, avg) in result.0 {
-                        println!("{} - {}", name, avg);
+                    for (name, avg) in result {
+                        println!("{} - {}", name.0, avg.0);
                     }
 
                     return Result::Ok(());
                 },
                 _ => {
                     println!("invalid query");
-                    return Result::Err(MarleaError::InvalidOptions(&format!("invalid query")));
+                    return Result::Err(MarleaError::InvalidOptions(&"invalid query"));
                 }, 
             }
         },

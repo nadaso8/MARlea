@@ -7,6 +7,7 @@ use marlea_engine::{
         Solution
     }, 
     MarleaResult,
+    Point,
 };
 
 pub enum MarleaSaveObjError {
